@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import PageTransition from '@/components/PageTransition'
-import { ShieldCheck, Store, Plus, Loader2, Copy, Check } from 'lucide-react'
+import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ShopRow {
@@ -13,17 +13,29 @@ interface ShopRow {
   name: string
   owner_user_id: string | null
   public_slug: string | null
+  phone: string | null
+  address: string | null
+  logo_url: string | null
+  instagram: string | null
   created_at: string
 }
 
 function AdminPage() {
   const [shops, setShops] = useState<ShopRow[]>([])
   const [loading, setLoading] = useState(true)
-  const [open, setOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingShop, setEditingShop] = useState<ShopRow | null>(null)
   const [name, setName] = useState('')
   const [ownerId, setOwnerId] = useState('')
   const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  // Edit form fields
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editAddress, setEditAddress] = useState('')
+  const [editInstagram, setEditInstagram] = useState('')
 
   async function loadShops() {
     setLoading(true)
@@ -57,7 +69,39 @@ function AdminPage() {
       toast.success('Barbearia criada!')
       setName('')
       setOwnerId('')
-      setOpen(false)
+      setCreateOpen(false)
+      loadShops()
+    }
+    setSaving(false)
+  }
+
+  function openEdit(shop: ShopRow) {
+    setEditingShop(shop)
+    setEditName(shop.name)
+    setEditPhone(shop.phone ?? '')
+    setEditAddress(shop.address ?? '')
+    setEditInstagram(shop.instagram ?? '')
+    setEditOpen(true)
+  }
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingShop) return
+    setSaving(true)
+
+    const { error } = await supabase.rpc('admin_update_shop', {
+      shop_id: editingShop.id,
+      shop_name: editName.trim(),
+      shop_phone: editPhone.trim() || null,
+      shop_address: editAddress.trim() || null,
+      shop_instagram: editInstagram.trim() || null,
+    })
+
+    if (error) {
+      toast.error('Erro ao salvar: ' + error.message)
+    } else {
+      toast.success('Configurações salvas!')
+      setEditOpen(false)
       loadShops()
     }
     setSaving(false)
@@ -93,7 +137,7 @@ function AdminPage() {
               <p className="text-sm text-muted-foreground">Gerenciar barbearias do SaaS</p>
             </div>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger>
               <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
                 <Plus className="mr-2 size-4" /> Nova Barbearia
@@ -106,32 +150,14 @@ function AdminPage() {
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nome da Barbearia</label>
-                  <Input
-                    placeholder="Ex: Studio Lima"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    minLength={2}
-                  />
+                  <Input placeholder="Ex: Studio Lima" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    ID do Usuário (opcional)
-                  </label>
-                  <Input
-                    placeholder="Cole o UUID do usuário no Supabase Auth"
-                    value={ownerId}
-                    onChange={(e) => setOwnerId(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Crie o usuário em Supabase &gt; Authentication &gt; Users, copie o UUID e cole aqui.
-                  </p>
+                  <label className="text-sm font-medium">ID do Usuário (opcional)</label>
+                  <Input placeholder="Cole o UUID do usuário" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">Crie o usuário em Supabase &gt; Authentication &gt; Users, copie o UUID.</p>
                 </div>
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white"
-                >
+                <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                   {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando...</> : <><Store className="mr-2 size-4" /> Criar</>}
                 </Button>
               </form>
@@ -140,9 +166,7 @@ function AdminPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="size-8 animate-spin text-indigo-500" />
-          </div>
+          <div className="flex justify-center py-12"><Loader2 className="size-8 animate-spin text-indigo-500" /></div>
         ) : shops.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Store className="mb-3 size-12 opacity-30" />
@@ -156,42 +180,75 @@ function AdminPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{shop.name}</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 text-destructive/60 hover:text-destructive"
-                      onClick={() => handleDelete(shop.id)}
-                    >
-                      &times;
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="size-7 text-indigo-500 hover:text-indigo-400" onClick={() => openEdit(shop)} title="Configurar">
+                        <Settings className="size-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="size-7 text-destructive/60 hover:text-destructive" onClick={() => handleDelete(shop.id)} title="Excluir">
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                     <span className="text-muted-foreground">ID</span>
-                    <button
-                      className="flex items-center gap-1 font-mono text-xs text-indigo-500 hover:text-indigo-400"
-                      onClick={() => copyId(shop.id)}
-                    >
+                    <button className="flex items-center gap-1 font-mono text-xs text-indigo-500 hover:text-indigo-400" onClick={() => copyId(shop.id)}>
                       {shop.id.slice(0, 8)}&hellip;
                       {copiedId === shop.id ? <Check className="size-3" /> : <Copy className="size-3" />}
                     </button>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                     <span className="text-muted-foreground">Dono</span>
-                    <span className="font-mono text-xs">
-                      {shop.owner_user_id ? `${shop.owner_user_id.slice(0, 8)}…` : '—'}
-                    </span>
+                    <span className="font-mono text-xs">{shop.owner_user_id ? `${shop.owner_user_id.slice(0, 8)}…` : '—'}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
                     <span className="text-muted-foreground">Slug</span>
                     <span className="text-xs">{shop.public_slug ?? '—'}</span>
                   </div>
+                  {shop.instagram && (
+                    <div className="flex items-center justify-between rounded-lg bg-indigo-500/5 px-3 py-2">
+                      <span className="text-muted-foreground">Instagram</span>
+                      <span className="text-xs">@{shop.instagram}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Configurar — {editingShop?.name}</DialogTitle>
+            </DialogHeader>
+            {editingShop && (
+              <form onSubmit={handleSaveEdit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Nome</label>
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} required minLength={2} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Telefone / WhatsApp</label>
+                  <Input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="5511999999999" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Endereço</label>
+                  <Input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="Rua das Flores, 123" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Instagram</label>
+                  <Input value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder="studiolima" />
+                </div>
+                <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
+                  {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : <><Save className="mr-2 size-4" /> Salvar</>}
+                </Button>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </PageTransition>
   )
