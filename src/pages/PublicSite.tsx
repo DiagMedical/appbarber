@@ -275,7 +275,7 @@ function PublicSite() {
       price: selectedServices.length > 0 ? formatMoney(totalPrice) : 'Pendente',
       duration: totalDuration,
       timeLabel: time || 'Pendente',
-      dateLabel: date ? new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Pendente',
+      dateLabel: date ? new Date(`${date}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Pendente',
       phoneLabel: normalizePhone(phone) ? formatPhoneInput(phone) : 'Pendente',
     }
   }, [selectedBarber?.name, selectedServices, totalPrice, totalDuration, date, time, phone])
@@ -378,7 +378,7 @@ function PublicSite() {
       })
       if (appointmentError) throw appointmentError
       
-      const readableDate = new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+      const readableDate = new Date(`${date}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
       const message = [
         '💈 *' + shop.name + '*',
         '',
