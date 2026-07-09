@@ -23,33 +23,10 @@ export function buildPublicSlug(source: string, uniqueSeed: string) {
 }
 
 export function shouldRenderPublicSite() {
-  if (typeof window === 'undefined') return false
-
-  const { pathname, hostname } = window.location
-  const host = stripPort(hostname)
-
-  // Sempre renderiza o app em localhost
-  if (isLocalHost(host)) return false
-
-  // Se o path começa com /public, deixa o Router DOM decidir
-  if (pathname.startsWith('/public')) return false
-
-  // Força renderização do site público via query param
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('public') === '1') return true
-  if (params.get('public') === '0') return false
-
-  // Só renderiza site público se houver subdomínio (3+ labels) E não for www
-  // Ex: studiolima.appbarber.vercel.app → site público
-  // Ex: appbarber.vercel.app → app (2 labels)
-  // Ex: app.appbarber.com → app
-  // Ex: www.appbarber.com → app
-  const labels = host.split('.')
-  if (labels.length >= 3) {
-    const subdomain = labels[0]
-    if (subdomain !== 'www' && subdomain !== 'app') return true
-  }
-
+  // O app sempre renderiza no domínio principal.
+  // Site público só é acessível via rota /public/:slug no React Router.
+  // O wildcard de subdomínios (ex: studiolima.meudominio.com) é para o futuro,
+  // quando houver um DNS wildcard configurado com redirect para /public/:slug.
   return false
 }
 
