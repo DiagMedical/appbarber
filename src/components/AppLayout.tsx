@@ -45,8 +45,13 @@ function AppLayout() {
     )
   }
 
-  if (!shop) {
+  if (!shop && !isAdmin) {
     return <ShopSetup />
+  }
+
+  // Admin sem loja própria: redireciona pro /admin
+  if (isAdmin && !shop && location.pathname !== '/admin') {
+    return <Navigate to="/admin" replace />
   }
 
   return (
