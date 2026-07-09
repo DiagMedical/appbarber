@@ -1,7 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageTransition from '@/components/PageTransition'
 import { Settings, Save, Loader2, Upload, Trash2 } from 'lucide-react'
@@ -9,71 +21,118 @@ import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { uploadLogoPhoto, deletePhoto } from '@/lib/storage'
 
+// ─── Schema ────────────────────────────────────────────────────────────────────
+
+const shopSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  phone: z
+    .string()
+    .regex(/^\d{10,15}$/, 'Formato inválido. Use código do país + DDD + número (ex: 5511999999999)')
+    .or(z.literal('')),
+  address: z.string().max(200, 'Endereço muito longo').or(z.literal('')),
+  logo_url: z.string().url('URL inválida').or(z.literal('')),
+})
+
+type ShopFormValues = z.infer<typeof shopSchema>
+
+// ─── Component ─────────────────────────────────────────────────────────────────
+
 function ShopSettings() {
   const { shop, refreshShop } = useAuth()
 
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [address, setAddress] = useState('')
-  const [logoUrl, setLogoUrl] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const form = useForm<ShopFormValues>({
+    resolver: zodResolver(shopSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      address: '',
+      logo_url: '',
+    },
+  })
 
+  const { formState: { isSubmitting }, watch, setValue } = form
+  const logoUrl = watch('logo_url')
+
+  // Populate form when shop data is available
   useEffect(() => {
     if (shop) {
-      setName(shop.name ?? '')
-      setPhone(shop.phone ?? '')
-      setAddress(shop.address ?? '')
-      setLogoUrl(shop.logo_url ?? '')
-      setLoading(false)
+      form.reset({
+        name: shop.name ?? '',
+        phone: shop.phone ?? '',
+        address: shop.address ?? '',
+        logo_url: shop.logo_url ?? '',
+      })
     }
-  }, [shop])
+  }, [shop, form])
 
-  async function save() {
-    if (!shop || !name.trim()) return
-    setSaving(true)
+  async function onSubmit(values: ShopFormValues) {
+    if (!shop) return
 
     const { error } = await supabase
       .from('shops')
       .update({
-        name: name.trim(),
-        phone: phone.trim() || null,
-        address: address.trim() || null,
-        logo_url: logoUrl.trim() || null,
+        name: values.name.trim(),
+        phone: values.phone.trim() || null,
+        address: values.address.trim() || null,
+        logo_url: values.logo_url.trim() || null,
       })
       .eq('id', shop.id)
 
     if (error) {
       toast.error('Erro ao salvar configurações da barbearia')
-    } else {
-      toast.success('Configurações salvas com sucesso!')
-      await refreshShop()
+      return
     }
 
-    setSaving(false)
+    toast.success('Configurações salvas com sucesso!')
+    await refreshShop()
+  }
+
+  async function handleLogoUpload(file: File) {
+    if (!shop) return
+    const url = await uploadLogoPhoto(shop.id, file)
+    if (url) {
+      setValue('logo_url', url, { shouldValidate: true })
+      toast.success('Logo atualizado!')
+    } else {
+      toast.error('Erro ao fazer upload. Verifique o bucket "gallery" no Supabase.')
+    }
+  }
+
+  async function handleLogoRemove() {
+    if (logoUrl.includes('/storage/')) {
+      await deletePhoto(logoUrl)
+    }
+    setValue('logo_url', '', { shouldValidate: true })
+  }
+
+  if (!shop) {
+    return (
+      <PageTransition>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="size-8 animate-spin text-indigo-500" />
+        </div>
+      </PageTransition>
+    )
   }
 
   return (
     <PageTransition>
       <div className="p-4 sm:p-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/20">
-              <Settings className="size-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Configurações</h1>
-              <p className="text-sm text-muted-foreground">Informações da sua barbearia</p>
-            </div>
+        {/* Header */}
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/20">
+            <Settings className="size-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Configurações</h1>
+            <p className="text-sm text-muted-foreground">Informações da sua barbearia</p>
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="size-8 animate-spin text-indigo-500" />
-          </div>
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-2">
+
+            {/* ── Dados da Loja ── */}
             <Card className="border-indigo-500/10">
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -87,40 +146,69 @@ function ShopSettings() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nome da Barbearia</label>
-                  <Input
-                    placeholder="Ex: Studio Lima"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Telefone / WhatsApp da Loja</label>
-                  <Input
-                    placeholder="Ex: 5511999999999"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
-                  />
-                  <p className="text-xs text-muted-foreground">Código do país + DDD + número. Ex: 5511999999999</p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Endereço</label>
-                  <Input
-                    placeholder="Ex: Rua das Flores, 123 — São Paulo/SP"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Barbearia</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: Studio Lima"
+                          className="border-indigo-500/20 focus:ring-indigo-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone / WhatsApp da Loja</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 5511999999999"
+                          className="border-indigo-500/20 focus:ring-indigo-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Código do país + DDD + número, sem espaços ou traços.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: Rua das Flores, 123 — São Paulo/SP"
+                          className="border-indigo-500/20 focus:ring-indigo-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Button
-                  onClick={save}
-                  disabled={saving || !name.trim()}
+                  type="submit"
+                  disabled={isSubmitting}
                   className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
                 >
-                  {saving ? (
+                  {isSubmitting ? (
                     <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</>
                   ) : (
                     <><Save className="mr-2 size-4" /> Salvar configurações</>
@@ -129,6 +217,7 @@ function ShopSettings() {
               </CardContent>
             </Card>
 
+            {/* ── Logo ── */}
             <Card className="border-indigo-500/10">
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -142,24 +231,20 @@ function ShopSettings() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Preview */}
                 {logoUrl ? (
                   <div className="relative overflow-hidden rounded-2xl border border-indigo-500/10">
                     <img
                       src={logoUrl}
                       alt="Logo"
-                      className="h-40 w-full object-contain bg-card/50 p-4"
+                      className="h-40 w-full bg-card/50 object-contain p-4"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       className="absolute right-2 top-2 bg-black/50 text-white hover:bg-black/70"
-                      onClick={async () => {
-                        if (logoUrl.includes('/storage/')) {
-                          await deletePhoto(logoUrl)
-                        }
-                        setLogoUrl('')
-                      }}
+                      onClick={handleLogoRemove}
                     >
                       <Trash2 className="size-3.5" />
                     </Button>
@@ -170,38 +255,33 @@ function ShopSettings() {
                   </div>
                 )}
 
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 text-sm text-muted-foreground hover:bg-indigo-500/10 transition">
+                {/* Upload button */}
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 text-sm text-muted-foreground transition hover:bg-indigo-500/10">
                   <Upload className="size-4 text-indigo-500" />
                   {logoUrl ? 'Trocar logo' : 'Fazer upload do logo'}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/svg+xml"
                     className="hidden"
-                    onChange={async (e) => {
+                    onChange={(e) => {
                       const file = e.target.files?.[0]
-                      if (!file || !shop) return
-                      const url = await uploadLogoPhoto(shop.id, file)
-                      if (url) {
-                        setLogoUrl(url)
-                        toast.success('Logo atualizado!')
-                      } else {
-                        toast.error('Erro ao fazer upload. Verifique o bucket "gallery" no Supabase.')
-                      }
+                      if (file) handleLogoUpload(file)
                     }}
                   />
                 </label>
 
-                <div className="rounded-xl border border-dashed border-indigo-500/10 bg-indigo-500/5 p-3 text-xs text-muted-foreground">
-                  Formatos aceitos: JPG, PNG, WebP, SVG. Tamanho máximo: 5MB.
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Formatos aceitos: JPG, PNG, WebP, SVG. Tamanho máximo: 5 MB.
+                </p>
 
+                {/* Salvar logo (só aparece quando há logo) */}
                 {logoUrl && (
                   <Button
-                    onClick={save}
-                    disabled={saving}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
                   >
-                    {saving ? (
+                    {isSubmitting ? (
                       <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</>
                     ) : (
                       <><Save className="mr-2 size-4" /> Salvar logo</>
@@ -211,25 +291,26 @@ function ShopSettings() {
               </CardContent>
             </Card>
 
-            {shop && (
-              <Card className="lg:col-span-2 border-indigo-500/10">
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    {[
-                      { label: 'ID da Loja', value: shop.id.slice(0, 8) + '…' },
-                      { label: 'Slug Público', value: shop.public_slug ?? 'Não configurado' },
-                    ].map((item) => (
-                      <div key={item.label} className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">{item.label}</p>
-                        <p className="mt-1 font-mono text-sm font-medium">{item.value}</p>
-                      </div>
-                    ))}
+            {/* ── Info da loja (leitura) ── */}
+            <Card className="border-indigo-500/10 lg:col-span-2">
+              <CardContent className="pt-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">ID da Loja</p>
+                    <p className="mt-1 font-mono text-sm font-medium">{shop.id.slice(0, 8)}…</p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+                  <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Slug Público</p>
+                    <p className="mt-1 font-mono text-sm font-medium">
+                      {shop.public_slug ?? 'Não configurado'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+          </form>
+        </Form>
       </div>
     </PageTransition>
   )

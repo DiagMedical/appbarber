@@ -144,3 +144,22 @@ src/
 - **future_improvements_plan.md:** **CRIADO** — Plano de melhorias futuras para integrar estreitamente o Site Público ao SaaS (links de cancelamento/auto-serviço no WhatsApp, buffers e múltiplos serviços na reserva, links de marketing personalizados por barbeiro, motor de re-engajamento ativo para retenção e widget de status do WhatsApp no Dashboard).
 - **build:** Produção validada com sucesso após as mudanças estéticas e estruturais.
 
+### Sessão 10 — Segurança, Notificações e Configurações (2026-07-09)
+- **supabase/migrations/20260709200000_add_buffer_minutes_to_services.sql:** Coluna `buffer_minutes INTEGER DEFAULT 0` em `services`
+- **supabase/migrations/20260709210000_reengage_cron.sql:** pg_cron `send-reengage` agendado para 13h UTC diariamente
+- **supabase/migrations/20260709220000_roadmap_improvements.sql:** Adicionado `cancel_token UUID` em `appointments`, `phone TEXT` em `barbers`, `reengage_interval_days INT DEFAULT 22` em `whatsapp_configs`
+- **src/types/database.ts:** Interfaces `Appointment`, `Barber` e `WhatsAppConfig` atualizadas com os novos campos
+- **src/lib/storage.ts:** Função `uploadLogoPhoto` adicionada para upload do logo da loja
+- **supabase/functions/notify-appointment/index.ts:** Envia link de cancelamento com `cancel_token` (não mais `id`); dispara segunda mensagem ao barbeiro no INSERT com phone
+- **supabase/functions/reengage/index.ts:** Lê `reengage_interval_days` do banco por loja antes de filtrar clientes inativos
+- **src/pages/Barbers.tsx:** Campo de edição de telefone do barbeiro adicionado
+- **src/pages/WhatsAppSettings.tsx:** Input numérico para configurar intervalo de re-engajamento
+- **src/pages/ShopSettings.tsx:** **CRIADO** — tela de configurações da loja (nome, telefone, endereço, logo)
+- **src/App.tsx:** Rota `/settings` adicionada
+- **src/components/AppLayout.tsx:** Item "Configurações" (ícone Settings) adicionado na sidebar
+- **src/pages/ManageBooking.tsx:** Busca agendamento via `.eq('cancel_token', token)` em vez de `.eq('id', token)`
+- **build:** `npm run build` validado com sucesso (`✓ built in 1.17s`)
+- **Commit:** `dda8579` — local apenas; push para `origin main` ainda pendente
+- **⚠️ PENDENTE:** Todas as 3 migrations + 2 edge function deploys + push precisam ser executados manualmente (ver `ROADMAP.md` Fase 0)
+- **⚠️ DÍVIDA TÉCNICA:** `ShopSettings.tsx` usa `useState` em vez de React Hook Form + Zod (obrigatório pelo AGENTS.md)
+
