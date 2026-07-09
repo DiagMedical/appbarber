@@ -1,9 +1,15 @@
 export interface Shop {
   id: string
+  owner_user_id: string | null
+  public_slug: string | null
   name: string
   phone: string | null
   address: string | null
   logo_url: string | null
+  instagram: string | null
+  working_hours: Record<string, string> | null
+  gallery_photos: string[] | null
+  hero_photo: string | null
   created_at: string
   updated_at: string
 }
@@ -47,6 +53,7 @@ export interface BarberService {
 
 export interface Client {
   id: string
+  shop_id: string
   phone: string
   name: string
   email: string | null
@@ -94,7 +101,7 @@ export interface GoogleCalendarToken {
 export interface Database {
   public: {
     Tables: {
-      shops: { Row: Shop; Insert: Omit<Shop, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Shop, 'id'>> }
+      shops: { Row: Shop; Insert: Omit<Shop, 'id' | 'created_at' | 'updated_at' | 'public_slug'> & { public_slug?: string | null }; Update: Partial<Omit<Shop, 'id'>> }
       barbers: { Row: Barber; Insert: Omit<Barber, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Barber, 'id'>> }
       barber_availability: { Row: BarberAvailability; Insert: Omit<BarberAvailability, 'id'>; Update: Partial<Omit<BarberAvailability, 'id'>> }
       services: { Row: Service; Insert: Omit<Service, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Service, 'id'>> }

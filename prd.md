@@ -1,55 +1,98 @@
-# PRD — AppBarber (SaaS para Barbearias)
+# PRD - AppBarber
 
-## Visão Geral
+## Visao do produto
 
-SaaS para gestão de barbearias. Agendamento online, gestão de clientes/serviços/barbeiros,
-notificações via WhatsApp e futura integração com Google Calendar.
+AppBarber e um SaaS para operacao diaria de barbearias, com foco em agendamento, gestao de clientes, controle de servicos e comunicacao automatizada via WhatsApp. A proposta e simplificar a rotina do negocio sem perder controle sobre horarios, confirmacoes e atendimento.
 
-## Tecnologias
+## Problema que resolve
 
-| Camada | Tecnologia |
-|---|---|
-| Frontend | Vite + React 18 + TypeScript |
-| Estilo | TailwindCSS + shadcn/ui |
-| Backend/Dados | Supabase (Auth, PostgreSQL, Storage) |
-| Notificações | Evolution API (self-hosted) |
-| Deploy | Vercel |
-| Timezone | UTC-3 (Brasília) — armazenamento em UTC, exibição em UTC-3 |
+Barbearias costumam operar com combinacoes de caderno, conversa no WhatsApp e memoria da equipe. Isso cria retrabalho, falhas de agendamento, perda de visibilidade da agenda e confirmacoes manuais demais. O AppBarber organiza esse fluxo em um unico sistema, com disponibilidade confiavel e notificacoes automaticas.
 
-## Fases
+## Publico-alvo
 
-### Fase 1 — Setup Inicial
-- [x] Projeto Vite + React + TypeScript
-- [x] TailwindCSS + shadcn/ui configurados
-- [x] Dark/Light mode com persistência em localStorage
-- [x] Variáveis de ambiente (`SUPABASE_URL`, `SUPABASE_ANON_KEY`)
-- [x] Conexão com Supabase client
+- Donos e gestores de barbearias que precisam centralizar operacao e agenda
+- Barbeiros que dependem de uma visao clara dos proprios horarios
+- Clientes finais que querem reservar sem troca excessiva de mensagens
 
-### Fase 2 — Core (Auth + DB + CRUD + Agendamento)
-- [ ] Tabelas no Supabase (ver schema abaixo)
-- [ ] Auth: email/senha
-- [ ] CRUD: barbearias, barbeiros, serviços, clientes
-- [ ] Fluxo de agendamento: selecionar data → barbeiro → serviço → horário
-- [ ] Validação de horários disponíveis
+## Experiencia principal
 
-### Fase 3 — Notificações (Evolution API)
-- [ ] Evolution API self-hosted conectada ao Supabase
-- [ ] Webhook do Supabase para novos agendamentos
-- [ ] Lembrete automático 1h antes (job agendado)
-- [ ] Confirmação de agendamento via WhatsApp
+1. O cliente acessa o link publico da barbearia.
+2. Escolhe barbeiro, servico e data.
+3. Enxerga apenas os horarios realmente disponiveis.
+4. Informa nome e WhatsApp.
+5. Confirma o agendamento.
+6. A barbearia recebe a confirmacao automaticamente.
+7. O cliente recebe a confirmacao e, depois, o lembrete antes do horario.
 
-### Fase 4 — UI/UX + Responsividade
-- [ ] Layout responsivo (mobile-first)
-- [ ] Toast notifications
-- [ ] Componentes reutilizáveis
-- [ ] Consistência de timezone (UTC-3)
+## Escopo do MVP
 
-### Fase 5 — Deploy
-- [ ] Vercel + variáveis de ambiente
-- [ ] Teste de fluxo completo
-- [ ] Documentação de setup local
+- Autenticacao por email e senha
+- Cadastro e gestao de barbearias, barbeiros, servicos e clientes
+- Agenda com verificacao real de disponibilidade
+- Fluxo de agendamento para o cliente final
+- Notificacoes via WhatsApp usando Evolution API
+- Lembrete automatico antes do horario marcado
+- Dashboard com visao operacional da agenda
+- Relatorios basicos de desempenho
 
-## Schema do Banco de Dados
+## Ja entregue
+
+- Base do frontend em Vite + React + TypeScript
+- Interface em TailwindCSS v4 + shadcn/ui v4
+- Dark mode como padrao visual
+- Tema visual em azul/indigo com identidade propria
+- Validacao de horarios disponiveis por barbeiro
+- Fluxo de booking com selecao de slots disponiveis
+- Dialog de horarios por barbeiro na area administrativa
+- Edge functions para notificacao e lembrete
+- Agenda semanal visual na dashboard
+- Pagina de relatorios
+- Dashboard com prioridade operacional, proximos atendimentos e carga por barbeiro
+- Booking com resumo fixo, mascara de WhatsApp e confirmacao mais clara
+- Tela de detalhes de agendamento com acoes rapidas
+- CRUDs de barbeiros, servicos e clientes com busca, filtro e melhor densidade visual
+- Login, WhatsApp e relatorios alinhados ao mesmo padrao visual do produto
+
+## Fora de escopo por enquanto
+
+- Integracao com Google Calendar
+- Multishop avancado
+- Automacoes complexas de marketing
+- BI profundo ou analises preditivas
+- App mobile nativo
+
+## Roadmap
+
+### Curto prazo
+
+- Consolidar o fluxo de CRUDs com uma experiencia mais polida
+- Revisar consistencia de estados vazios, loading e feedback visual
+- Fechar pequenos ajustes de UX no booking e nos dialogs administrativos
+
+### Medio prazo
+
+- Evoluir relatorios com indicadores mais uteis para gestao
+- Melhorar notificacoes e mensagens de confirmacao
+- Refinar permissoes e estados de autenticacao
+
+### Longo prazo
+
+- Integrar Google Calendar
+- Expandir automacoes ligadas a retencao e recorrencia
+- Evoluir o produto para multiplas unidades, se necessario
+
+## Decisoes tecnicas
+
+| Area | Escolha | Motivo |
+|---|---|---|
+| Frontend | Vite + React 19 + TypeScript | Boa velocidade de desenvolvimento e tipagem forte |
+| UI | TailwindCSS v4 + shadcn/ui v4 | Consistencia visual e composicao flexivel |
+| Backend | Supabase | Auth, banco e storage no mesmo ecossistema |
+| Notificacoes | Evolution API | Comunicacao via WhatsApp sem depender de fluxos manuais |
+| Deploy | Vercel | Simplicidade de deploy e manutencao |
+| Timezone | UTC-3 na exibicao | Alinhado com a operacao das barbearias no Brasil |
+
+## Modelagem principal
 
 ```sql
 -- Barbearias
@@ -75,7 +118,7 @@ CREATE TABLE barbers (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Horários de trabalho do barbeiro
+-- Horarios de trabalho
 CREATE TABLE barber_availability (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
@@ -85,7 +128,7 @@ CREATE TABLE barber_availability (
   UNIQUE(barber_id, day_of_week)
 );
 
--- Serviços
+-- Servicos
 CREATE TABLE services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
@@ -98,7 +141,7 @@ CREATE TABLE services (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Associação barbeiro-serviço
+-- Relacao barbeiro-servico
 CREATE TABLE barber_services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   barber_id UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
@@ -133,19 +176,19 @@ CREATE TABLE appointments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Configuração WhatsApp (Evolution API)
+-- Configuracao WhatsApp
 CREATE TABLE whatsapp_configs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
   instance_name TEXT NOT NULL,
-  api_key TEXT NOT NULL, -- criptografado via pgcrypto
+  api_key TEXT NOT NULL,
   webhook_secret TEXT NOT NULL,
   active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tokens Google Calendar (futuro)
+-- Tokens Google Calendar
 CREATE TABLE google_calendar_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   shop_id UUID NOT NULL REFERENCES shops(id) ON DELETE CASCADE UNIQUE,
@@ -157,42 +200,14 @@ CREATE TABLE google_calendar_tokens (
 );
 ```
 
-## Fluxos Principais
+## Regras de operacao
 
-### Agendamento
-1. Cliente acessa link público da barbearia
-2. Seleciona barbeiro → serviço → data → horário
-3. Informa nome + WhatsApp (se não existir, cadastra)
-4. Confirma agendamento
-5. Barbearia recebe notificação via WhatsApp
-6. Cliente recebe confirmação via WhatsApp
-7. 1h antes: lembrete automático via WhatsApp
+- Horarios sempre sao exibidos em UTC-3
+- O cliente nunca deve ver horarios ocupados como opcoes validas
+- Agendamentos precisam ser confirmados com dupla verificacao de conflito
+- Notificacoes devem ser disparadas no servidor, nao no navegador
+- Componentes de interface devem seguir a identidade visual do AppBarber
 
-### Dashboard
-- Visão do dia com agendamentos
-- CRUD de barbeiros, serviços, agendamentos
-- Histórico de clientes
+## Observacoes de produto
 
-## Decisões Técnicas
-
-| Decisão | Escolha | Motivo |
-|---|---|---|
-| TypeScript | Sim | Tipagem segura, melhor DX |
-| shadcn/ui | Sim | Tailwind nativo, dark mode, acessibilidade |
-| State management | React Context + hooks | MVP leve, sem overengineering |
-| Formulários | React Hook Form + Zod | Validação type-safe |
-| Roteamento | React Router v6 | Padrão do ecossistema |
-| Cron jobs | Supabase Edge Functions | Mesmo ecossistema, sem custo extra |
-| WhatsApp | Evolution API | Não exige conta Business, self-hosted |
-| Google Calendar | Pós-MVP | Complexidade adicional |
-
-## Segurança
-- Tokens do WhatsApp criptografados no banco (pgcrypto)
-- RLS (Row Level Security) no Supabase habilitado
-- Variáveis de ambiente para chaves sensíveis
-- Refresh tokens Google Calendar armazenados com segurança
-
-## Timezone
-- Armazenamento: UTC (TIMESTAMPTZ)
-- Exibição: sempre converter para UTC-3 (Brasília)
-- Jobs agendados executados em UTC-3
+O AppBarber nao precisa parecer um sistema generico de agenda. Ele precisa parecer confiavel, rapido e claro para quem vive a rotina da barbearia. A experiencia deve transmitir controle da operacao, previsibilidade nos horarios e reducao de mensagens manuais.

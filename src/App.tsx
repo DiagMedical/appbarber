@@ -8,13 +8,21 @@ import Appointments from '@/pages/Appointments'
 import Booking from '@/pages/Booking'
 import Clients from '@/pages/Clients'
 import WhatsAppSettings from '@/pages/WhatsAppSettings'
+import Reports from '@/pages/Reports'
+import PublicSite from '@/pages/PublicSite'
+import { shouldRenderPublicSite } from '@/lib/site'
 
 function App() {
+  if (shouldRenderPublicSite()) {
+    return <PublicSite />
+  }
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/booking" element={<Booking />} />
+        <Route path="/public/:slug" element={<PublicSite />} />
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/barbers" element={<Barbers />} />
@@ -22,6 +30,7 @@ function App() {
           <Route path="/clients" element={<Clients />} />
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/whatsapp" element={<WhatsAppSettings />} />
+          <Route path="/reports" element={<Reports />} />
         </Route>
       </Routes>
     </BrowserRouter>
