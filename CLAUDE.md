@@ -1,92 +1,57 @@
-# AppBarber - Claude Guide
+# AppBarber - Claude Guide (Operating Manual for AI Agents)
 
-## Purpose
+> 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
+> Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-This file is a short operating guide for anyone changing the AppBarber codebase.
-It should help an agent decide what to do, what to avoid, and how to verify the result without needing to dig through project history.
+## Current State (Session 10 Complete)
 
-## Product context
+All code for Phase 1 & 2 is fully written, validated with `npm run build`, and committed locally. 
+- **Database changes** are in `supabase/migrations/20260709*`.
+- **Backend changes** are in `supabase/functions/notify-appointment/` and `reengage/`.
+- **Frontend changes** are locally committed and include the new RHF+Zod `ShopSettings.tsx` page, sidebar integration, secure `cancel_token` support in `ManageBooking.tsx`, and telephone fields for barbers.
 
-AppBarber is a SaaS for barbershop operations. The product centers on scheduling, customer management, service management, barber availability, and WhatsApp-based notifications.
+---
 
-The app should feel reliable, premium, and operational. It is not a generic admin panel.
+## 🚨 NEXT STEPS FOR ANY AGENT (DO NOT SKIP OR REORDER)
 
-Recent work has already pushed the app toward that goal:
-- Dashboard now surfaces immediate operational attention
-- Booking shows a fixed summary and clearer availability flow
-- Appointments include a detail surface with quick actions
-- Barbers, Services, and Clients use search/filter patterns for faster scanning
-- Reports, WhatsApp settings, and the login surface were aligned to the same visual standard
+You must proceed strictly in this order:
 
-Next implementation pass should follow this order:
-1. Replace hardcoded `shop_id` values with the authenticated shop context. This base is now implemented on the main operational screens, including clients.
-2. Tighten Supabase RLS policies by shop and user.
-3. Audit all date/time creation, filtering, and display for UTC-3 consistency. The main booking, dashboard, appointments, reports, and availability paths are now explicit about UTC-3.
-4. Convert remaining manual form flows to `React Hook Form + Zod` where it adds clarity.
-5. Validate webhook, cron, and WhatsApp behavior after backend changes.
+### STEP 1: Verify Production/Deploy Tasks (Manual Tasks)
+Ask the user if they have run the following steps. **Do not write new code until these are confirmed/done:**
+1. **Git Push**: Send local commits to trigger Vercel deploy:
+   ```bash
+   git push origin main
+   ```
+2. **Supabase SQL Editor**: Run the SQL blocks in the `ROADMAP.md` Fase 0 (SQL-A, SQL-B, SQL-C) in the Supabase Dashboard.
+3. **Edge Functions Deploy**: Verified as deployed via CLI:
+   - `notify-appointment` is deployed.
+   - `reengage` is deployed.
 
-For existing databases, use the incremental migration path instead of replaying `supabase/schema.sql`:
-- Apply `supabase/migrations/20260708194000_multitenancy_rls.sql`
-- This migration is meant for an already provisioned database and only alters existing tables, policies, and helper functions
-- It is the preferred handoff for the multitenancy/RLS pass because it avoids `relation already exists` failures
-- The active-shop resolver now claims the first unowned shop for the signed-in user, so the existing dataset can be preserved instead of being stranded behind a new shop record
+### STEP 2: QA & Validation (Real Testing)
+Before writing any code for Phase 3, perform a QA validation:
+- Test creating a booking on the public site and confirm:
+  1. The client receives a WhatsApp message with the secure `cancel_token` link.
+  2. The barber receives the new booking notification.
+  3. Clicking the cancellation link successfully cancels the appointment without issues.
 
-For the next working session, start with [NEXT_SESSION_QA.md](./NEXT_SESSION_QA.md) and follow the steps in order before moving on to any new feature work.
+### STEP 3: Proceed with Phase 3 (New Features)
+Only after Steps 1 & 2 are validated, proceed with Phase 3 in this order:
+1. **[FEAT-4] Multi-service in Admin**: Update `src/pages/Appointments.tsx` and `src/pages/Booking.tsx` to support selecting multiple services (calculate cumulative duration, sum prices, query available slots by total duration, and save references).
+2. **[FEAT-5] price_at_booking**: Track historical pricing in reports.
+3. **[FEAT-6] Rescheduling in ManageBooking**: Allow self-service rescheduling.
 
-For the public-site expansion and future integrations, start with [FUTURE_IMPROVEMENTS.md](./FUTURE_IMPROVEMENTS.md). That file contains the handoff and roadmap for connecting the public site with the SaaS panel, and should be the source of truth for the next implementation pass.
+---
 
-## Hard rules
+## Hard Rules & Conventions
 
-1. Do not modify shadcn/ui source components directly.
-2. Keep dark mode as the default.
-3. All user-facing time must stay in UTC-3.
-4. Keep TypeScript strict and avoid `any`.
-5. Use React Hook Form + Zod for forms.
-6. Keep Zod schemas inferred from their source definitions.
-7. Keep the Supabase client singleton pattern through context/providers.
-8. Keep auth state managed through a provider.
+1. **No direct shadcn/ui edits**: Do not modify files in `src/components/ui/` directly. 
+2. **Form Standards**: Always use React Hook Form + Zod.
+3. **Timezone**: All dates/times must be stored and manipulated in UTC-3 (`America/Sao_Paulo` / offset `-03:00`).
+4. **Build verification**: Always run `npm run build` after any change to ensure zero TypeScript/linter errors.
+5. **Types**: Strict TypeScript. Do not use `any`.
 
-## UI and UX expectations
+---
 
-- Keep the indigo visual identity consistent across screens.
-- Prefer clear, premium, operational layouts over decorative ones.
-- Make the booking flow calm, guided, and hard to misunderstand.
-- Show real availability only. Never suggest blocked slots as valid options.
-- Keep status colors, time display, and action hierarchy consistent across the app.
-- Use composition via `className` and `asChild` instead of changing shadcn internals.
-
-## Code conventions
-
-- Pages live in `src/pages/`
-- Domain components live in `src/components/`
-- Hooks live in `src/hooks/`
-- Utilities live in `src/lib/`
-- Types live in `src/types/`
-- Prefer the repo's existing patterns before introducing new abstractions
-- Keep changes small and local unless the task clearly needs a wider refactor
-
-## Areas that need extra care
-
-- Booking and availability logic
-- Timezone conversion and date handling
-- Supabase queries and mutations
-- WhatsApp notification flow
-- Auth and session state
-
-## Before you finish
-
-Check these points before considering a change complete:
-
-- The UI still matches the AppBarber identity
-- The flow is clearer than before, not just different
-- Empty, loading, and error states are handled
-- Time display remains in UTC-3
-- No shadcn/ui source file was modified
-- TypeScript stays strict and clean
-
-## Relationship to AGENTS.md
-
-`AGENTS.md` is the broader project memory and change history.
-`CLAUDE.md` is the short working manual.
-
-If the two conflict, prefer the current repo code and the specific task request, then update these files later if needed.
+## Relationship to other files
+- `ROADMAP.md`: Living checklist showing granular tasks. Keep it updated using `[x]`.
+- `AGENTS.md`: Technical history and session logs.

@@ -82,13 +82,12 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
   ```
   > Usar URL hardcoded. A migration usa `current_setting()` que pode não existir no Cloud.
 
-- [ ] **[DEPLOY-A]** Deploy da Edge Function `notify-appointment`:
+- [x] **[DEPLOY-A]** Deploy da Edge Function `notify-appointment` ✅ _2026-07-09_
   ```bash
-  npx supabase login
   npx supabase functions deploy notify-appointment --project-ref chtjqqtvvlamrdesaiwp
   ```
 
-- [ ] **[DEPLOY-B]** Deploy da Edge Function `reengage`:
+- [x] **[DEPLOY-B]** Deploy da Edge Function `reengage` ✅ _2026-07-09_
   ```bash
   npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp
   ```
