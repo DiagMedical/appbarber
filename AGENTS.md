@@ -35,24 +35,27 @@
 
 ### shadcn/ui
 - Componentes em `src/components/ui/`
-- Nono-shadowing: não modificar componentes do shadcn diretamente
+- Nono-shadowing: não modificar componentes do shadcn diretamente (exceto `form.tsx`)
 - Preferir composição via `className` e `asChild`
 
 ## Regras
-1. Não modificar componentes do shadcn/ui
+1. Não modificar componentes do shadcn/ui (exceto `form.tsx`)
 2. Dark mode ativado por padrão
 3. Todos horários exibidos em UTC-3 (Brasília)
 4. Zod schemas sempre tipados com inferência
 5. React Hook Form + Zod para formulários
 6. Supabase client singleton via contexto
 7. Auth state gerenciado via provider
+8. **Admin identificado por email** (`welloliver@gmail.com`) em `AuthProvider.tsx`
+9. **Clientes** não veem Admin nem Configurações na sidebar
 
 ## Estrutura
 ```
 src/
 ├── components/
 │   ├── ui/              # shadcn/ui components
-│   ├── AppLayout.tsx    # Sidebar + mobile header + logo
+│   ├── AppLayout.tsx    # Sidebar + mobile header + logo + guardas (loading/onboarding/admin)
+│   ├── ShopSetup.tsx    # Onboarding: criar barbearia (qualquer usuário logado)
 │   └── PageTransition.tsx
 ├── pages/
 │   ├── Login.tsx
@@ -62,21 +65,47 @@ src/
 │   ├── Clients.tsx
 │   ├── Appointments.tsx
 │   ├── Booking.tsx
-│   └── WhatsAppSettings.tsx
+│   ├── WhatsAppSettings.tsx
+│   ├── Reports.tsx
+│   ├── AdminPage.tsx    # Painel admin (só admin vê)
+│   └── ShopSettings.tsx # Config da loja (só admin vê)
 ├── hooks/
 │   └── useTheme.ts
+│   └── useWhatsAppStatus.ts
 ├── lib/
 │   ├── supabase.ts
+│   ├── shop.ts          # resolveActiveShop simplificado (só busca por owner_user_id)
 │   ├── evolution.ts
+│   ├── availability.ts
 │   ├── timezone.ts
+│   ├── site.ts
+│   ├── public-site.ts
+│   ├── storage.ts
 │   └── utils.ts
 ├── providers/
 │   ├── ThemeProvider.tsx
-│   └── AuthProvider.tsx
+│   └── AuthProvider.tsx  # isAdmin por email, error state, clearError
 ├── types/
 │   └── database.ts
-└── App.tsx
+└── App.tsx               # Rotas: /login, /booking, /public/:slug, /admin, /settings, etc.
 ```
+
+## Fluxo de Usuários
+
+### Admin (welloliver@gmail.com)
+1. Login → `resolveActiveShop` retorna null (admin não tem shop) → AppLayout detecta `isAdmin && !shop` → redireciona para `/admin`
+2. Sidebar: Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios, Admin, Configurações
+3. Em `/admin`: vê todas as lojas, cria novas (nome + UUID do dono), exclui
+
+### Cliente (dono de barbearia)
+1. Login → `resolveActiveShop` busca por `owner_user_id`
+2. Se achar shop → app normal
+3. Se não achar → onboarding (`ShopSetup`) com formulário "Criar Barbearia"
+4. Sidebar: Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios (sem Admin, sem Config)
+
+### Criação de barbearia
+- **Pelo admin**: Supabase Auth → cria usuário → copia UUID → `/admin` → Nova Barbearia → cola UUID
+- **Pelo cliente**: Login → onboarding → digita nome → INSERT com `owner_user_id = auth.uid()`
 
 ## Histórico de Alterações
 
@@ -141,8 +170,8 @@ src/
 
 ### Sessão 9 — Redesign Premium do Site Público (Luxury Gold)
 - **src/pages/PublicSite.tsx:** Reescrito completamente com tema de luxo escuro (fundo preto absoluto `#050505`, glows radiais dourados e destaques âmbar/ouro). Adicionado wizard de 4 etapas (serviços com categorias/busca, barbeiros com bio, datas horizontais de 14 dias em chips e slots por períodos de turno, formulário de WhatsApp com máscara e resumo flutuante).
-- **future_improvements_plan.md:** **CRIADO** — Plano de melhorias futuras para integrar estreitamente o Site Público ao SaaS (links de cancelamento/auto-serviço no WhatsApp, buffers e múltiplos serviços na reserva, links de marketing personalizados por barbeiro, motor de re-engajamento ativo para retenção e widget de status do WhatsApp no Dashboard).
-- **build:** Produção validada com sucesso após as mudanças estéticas e estruturais.
+- **future_improvements_plan.md:** **CRIADO** — Plano de melhorias futuras para integrar estreitamente o Site Público ao SaaS.
+- **build:** Produção validada com sucesso.
 
 ### Sessão 10 — Segurança, Notificações e Configurações (2026-07-09)
 - **supabase/migrations/20260709200000_add_buffer_minutes_to_services.sql:** Coluna `buffer_minutes INTEGER DEFAULT 0` em `services`
@@ -163,11 +192,21 @@ src/
 - **⚠️ PENDENTE:** Todas as 3 migrations + 2 edge function deploys + push precisam ser executados manualmente (ver `ROADMAP.md` Fase 0)
 - **✅ RESOLVIDO:** `ShopSettings.tsx` migrado para React Hook Form + Zod; `src/components/ui/form.tsx` criado (shadcn Form sem deps externas)
 
-### Sessão 11 — Correção do Fluxo de Cadastro de Barbearia (2026-07-09)
-- **supabase/fix_rls_policies.sql:** **CRIADO** — SQL de correção das políticas RLS (permitir SELECT/UPDATE de lojas sem dono, adicionar colunas faltantes, gerar public_slug)
-- **src/lib/shop.ts:** `resolveActiveShop` simplificado — só busca por `owner_user_id`, sem auto-criar ou assumir loja
-- **src/providers/AuthProvider.tsx:** Adicionado estado `error` e `clearError()`; tratativa de erro com try/catch no loadShop
-- **src/components/ShopSetup.tsx:** **CRIADO** — tela de onboarding com formulário de criação de barbearia (qualquer usuário logado cria a sua)
-- **src/components/AppLayout.tsx:** Guardas: loading → spinner; shop null → ShopSetup; só renderiza app com shop pronto
-- **fix:** Correção do erro 403 (RLS) que impedia cadastro/edição de barbearia; build validado com sucesso
+### Sessão 11 — RHF+Zod Forms (continuação)
+- **`src/pages/Barbers.tsx`**: Formulário de cadastro/edição migrado para React Hook Form + Zod (nome e telefone do WhatsApp com validação)
+- **`src/pages/Clients.tsx`**: Formulário migrado para RHF + Zod (nome, WhatsApp, email, notas)
+- **`src/components/ui/form.tsx`**: Reescrito com `FormField` usando `useFormContext()` internamente para evitar conflito de generics do `react-hook-form` v7+ com `zodResolver`. A prop `control` é aceita mas ignorada (compat. de API). A prop `rules` é tipada como `any`
+- **`src/pages/Services.tsx`**: Corrigido `.default('0')` no schema Zod de `buffer_minutes` (eliminava divergência input/output no resolver); removido `asChild` do `DialogTrigger`
 
+### Sessão 12 — Admin Panel + RLS Fix (2026-07-09)
+- **`supabase/fix_rls_policies.sql`**: SQL de correção RLS — adiciona colunas faltantes (`public_slug`, `instagram`, etc.), cria tabela `admins` + função `is_admin()`, corrige políticas SELECT/UPDATE/DELETE para permitir que admin veja todas as lojas
+- **`src/lib/shop.ts`**: `resolveActiveShop` simplificado — só busca por `owner_user_id`. Remove auto-criação de loja e lógica de claim de loja sem dono
+- **`src/providers/AuthProvider.tsx`**: Adicionado `error` (state), `clearError()`, `isAdmin` (checks `ADMIN_EMAILS` = `['welloliver@gmail.com']`); try/catch no `loadShop` para não quebrar o app
+- **`src/components/ShopSetup.tsx`**: **CRIADO** — tela de onboarding com formulário "Criar Barbearia" para qualquer usuário logado sem loja. Usa `supabase.from('shops').insert()` diretamente
+- **`src/components/AppLayout.tsx`**: Guardas: `loading` → spinner; `!shop && !isAdmin` → ShopSetup; `isAdmin && !shop` → redirect `/admin`. Nav items dinâmicos: admin vê Admin+Config, cliente só vê operacional
+- **`src/pages/AdminPage.tsx`**: **CRIADO** — painel admin com listagem de todas as lojas, modal de criação (nome + UUID do dono), exclusão com confirmação
+- **`src/App.tsx`**: Rota `/admin` adicionada
+- **NavItems**: Separados em `baseNavItems` (Dashboard, Barbeiros, Serviços, Clientes, Agendamentos, WhatsApp, Relatórios) e `adminNavItems` (Admin, Configurações)
+- **fix:** Correção do erro 403 (RLS) que impedia cadastro/edição de barbearia + admin sem loja ser redirecionado corretamente
+- **build:** `npm run build` validado com sucesso
+- **Commits:** `7569d63`, `75a63c5`

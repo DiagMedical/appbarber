@@ -22,35 +22,35 @@ export function buildPublicSlug(source: string, uniqueSeed: string) {
   return `${base}-${seed}`
 }
 
-export function isPrivateAppHost(hostname = window.location.hostname) {
-  const host = stripPort(hostname)
-  if (isLocalHost(host)) return true
-  return host.split('.')[0] === 'app'
-}
-
 export function shouldRenderPublicSite() {
   if (typeof window === 'undefined') return false
-  
-  const path = window.location.pathname
-  // Se o caminho for explicitamente uma rota do admin do SaaS, não renderiza o site público
-  const isAdminPath = [
-    '/login', 
-    '/barbers', 
-    '/services', 
-    '/clients', 
-    '/appointments', 
-    '/whatsapp', 
-    '/reports', 
-    '/settings'
-  ].some(route => path === route || path.startsWith(route + '/'))
 
-  if (isAdminPath) return false
+  const { pathname, hostname } = window.location
+  const host = stripPort(hostname)
 
+  // Sempre renderiza o app em localhost
+  if (isLocalHost(host)) return false
+
+  // Se o path começa com /public, deixa o Router DOM decidir
+  if (pathname.startsWith('/public')) return false
+
+  // Força renderização do site público via query param
   const params = new URLSearchParams(window.location.search)
   if (params.get('public') === '1') return true
   if (params.get('public') === '0') return false
 
-  return !isPrivateAppHost(window.location.hostname)
+  // Só renderiza site público se houver subdomínio (3+ labels) E não for www
+  // Ex: studiolima.appbarber.vercel.app → site público
+  // Ex: appbarber.vercel.app → app (2 labels)
+  // Ex: app.appbarber.com → app
+  // Ex: www.appbarber.com → app
+  const labels = host.split('.')
+  if (labels.length >= 3) {
+    const subdomain = labels[0]
+    if (subdomain !== 'www' && subdomain !== 'app') return true
+  }
+
+  return false
 }
 
 export function getPublicShopSlugFromLocation() {
