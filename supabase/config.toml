@@ -383,6 +383,10 @@ verify_jwt = false
 enabled = true
 verify_jwt = false
 
+[functions.create-auth-user]
+enabled = true
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

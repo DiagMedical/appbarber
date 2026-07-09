@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseUrl } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import PageTransition from '@/components/PageTransition'
-import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2, Terminal } from 'lucide-react'
+import { ShieldCheck, Store, Plus, Loader2, Copy, Check, Settings, Save, Trash2, Terminal, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ShopRow {
@@ -21,6 +21,8 @@ interface ShopRow {
   created_at: string
 }
 
+const EDGE_FUNCTION_URL = `${supabaseUrl}/functions/v1/create-auth-user`
+
 function AdminPage() {
   const [shops, setShops] = useState<ShopRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,7 +31,7 @@ function AdminPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [editingShop, setEditingShop] = useState<ShopRow | null>(null)
   const [name, setName] = useState('')
-  const [ownerId, setOwnerId] = useState('')
+  const [password, setPassword] = useState('')
   const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
@@ -68,24 +70,52 @@ function AdminPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
-    if (!trimmed || trimmed.length < 2) return
+    if (!trimmed || trimmed.length < 2) {
+      toast.error('Digite o nome da barbearia')
+      return
+    }
+    if (!password.trim() || password.trim().length < 4) {
+      toast.error('A senha deve ter pelo menos 4 caracteres')
+      return
+    }
 
     setSaving(true)
     const authEmail = generateAuthEmail(trimmed)
-    const { error } = await supabase.rpc('admin_create_shop', {
-      shop_name: trimmed,
-      owner_id: ownerId.trim() || null,
-      auth_email: authEmail,
-    })
 
-    if (error) {
-      toast.error('Erro ao criar: ' + error.message)
-    } else {
-      toast.success('Barbearia criada!')
-      setName('')
-      setOwnerId('')
-      setCreateOpen(false)
-      loadShops()
+    try {
+      // 1. Create auth user via Edge Function
+      const res = await fetch(EDGE_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: authEmail, password: password.trim() }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        toast.error('Erro ao criar usuário: ' + (result.error || 'Erro desconhecido'))
+        setSaving(false)
+        return
+      }
+
+      // 2. Create shop with the new user's ID
+      const { error: shopError } = await supabase.rpc('admin_create_shop', {
+        shop_name: trimmed,
+        owner_id: result.user_id,
+        auth_email: authEmail,
+      })
+
+      if (shopError) {
+        toast.error('Erro ao criar barbearia: ' + shopError.message)
+      } else {
+        toast.success('Barbearia criada com sucesso!')
+        setName('')
+        setPassword('')
+        setCreateOpen(false)
+        loadShops()
+      }
+    } catch (err) {
+      toast.error('Erro de conexão: ' + (err instanceof Error ? err.message : 'Erro'))
     }
     setSaving(false)
   }
@@ -168,40 +198,29 @@ function AdminPage() {
                   <Input placeholder="Ex: Studio Lima" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} />
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Senha de acesso</label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="Min. 4 caracteres"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={4}
+                      className="border-indigo-500/20 pl-10 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">O barbeiro usará o nome da barbearia + esta senha para entrar.</p>
+                </div>
+
                 {name.trim().length >= 2 && (
                   <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-3">
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">Email de login (auto-gerado)</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 truncate font-mono text-sm text-indigo-400">{generateAuthEmail(name)}</code>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-6 text-indigo-500"
-                        onClick={() => { navigator.clipboard.writeText(generateAuthEmail(name)); toast.success('Email copiado!') }}
-                        title="Copiar email"
-                      >
-                        <Copy className="size-3" />
-                      </Button>
-                    </div>
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">Email de login (interno)</p>
+                    <code className="font-mono text-sm text-indigo-400">{generateAuthEmail(name)}</code>
                   </div>
                 )}
-
-                <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-3 text-xs text-muted-foreground">
-                  <p className="mb-1 font-medium text-amber-600 dark:text-amber-400">Passos para criar o acesso:</p>
-                  <ol className="ml-4 list-decimal space-y-1">
-                    <li>Abra Supabase &gt; Authentication &gt; Users &gt; <strong>Add User</strong></li>
-                    <li>Email: use o email auto-gerado acima</li>
-                    <li>Senha: defina uma senha para o barbeiro</li>
-                    <li>Copie o <strong>UUID</strong> do usuário criado</li>
-                    <li>Cole o UUID no campo abaixo</li>
-                  </ol>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">UUID do Usuário</label>
-                  <Input placeholder="Cole o UUID do usuário criado no Supabase" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} />
-                </div>
 
                 <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white">
                   {saving ? <><Loader2 className="mr-2 size-4 animate-spin" /> Criando...</> : <><Store className="mr-2 size-4" /> Criar Barbearia</>}
@@ -234,7 +253,7 @@ function AdminPage() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Store className="mb-3 size-12 opacity-30" />
             <p>Nenhuma barbearia cadastrada</p>
-            <p className="mt-1 text-xs">Clique em "Nova Barbearia" para criar a primeira.</p>
+            <p className="mt-1 text-xs">Clique em &ldquo;Nova Barbearia&rdquo; para criar a primeira.</p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -285,7 +304,6 @@ function AdminPage() {
           </div>
         )}
 
-        {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
