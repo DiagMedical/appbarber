@@ -90,8 +90,8 @@ function AppLayout() {
     return <NoShopPage user={user!} signOut={signOut} />
   }
 
-  // Admin sem loja própria: só pode acessar /admin
-  if (isAdmin && !shop && location.pathname !== '/admin') {
+  // Admin sem loja própria: só acessa páginas de admin/config
+  if (isAdmin && !shop && !['/admin', '/settings', '/whatsapp'].includes(location.pathname)) {
     return <Navigate to="/admin" replace />
   }
 
