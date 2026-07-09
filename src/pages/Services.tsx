@@ -1,31 +1,65 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
-import { Plus, Pencil, Trash2, Scissors, Clock, Search, Filter, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, Scissors, Clock, Search, Filter, DollarSign, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import type { Service } from '@/types/database'
 
 type ServiceFilter = 'all' | 'active' | 'inactive'
 
+// ─── Schema ────────────────────────────────────────────────────────────────────
+const serviceSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  price: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    message: 'Preço inválido. Deve ser maior que 0',
+  }),
+  duration_minutes: z.string().refine((val) => !isNaN(parseInt(val, 10)) && parseInt(val, 10) > 0, {
+    message: 'Duração inválida. Deve ser maior que 0 min',
+  }),
+  buffer_minutes: z.string().refine((val) => !isNaN(parseInt(val, 10)) && parseInt(val, 10) >= 0, {
+    message: 'Buffer inválido. Deve ser maior ou igual a 0 min',
+  }),
+})
+
+type ServiceFormValues = z.infer<typeof serviceSchema>
+
+// ─── Component ─────────────────────────────────────────────────────────────────
 function Services() {
   const { shop, loading: shopLoading } = useAuth()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Service | null>(null)
-  const [name, setName] = useState('')
-  const [price, setPrice] = useState('')
-  const [duration, setDuration] = useState('30')
-  const [buffer, setBuffer] = useState('0')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<ServiceFilter>('all')
+
+  const form = useForm<ServiceFormValues>({
+    resolver: zodResolver(serviceSchema),
+    defaultValues: {
+      name: '',
+      price: '',
+      duration_minutes: '30',
+      buffer_minutes: '0',
+    },
+  })
 
   useEffect(() => {
     load()
@@ -63,46 +97,63 @@ function Services() {
   }
 
   function reset() {
-    setName('')
-    setPrice('')
-    setDuration('30')
-    setBuffer('0')
+    form.reset({
+      name: '',
+      price: '',
+      duration_minutes: '30',
+      buffer_minutes: '0',
+    })
     setEditing(null)
   }
 
-  async function save() {
-    if (!shop || !name.trim() || !price) return
+  async function onSubmit(values: ServiceFormValues) {
+    if (!shop) return
     const payload = {
-      name: name.trim(),
-      price: parseFloat(price),
-      duration_minutes: parseInt(duration, 10),
-      buffer_minutes: parseInt(buffer, 10) || 0,
+      name: values.name.trim(),
+      price: parseFloat(values.price),
+      duration_minutes: parseInt(values.duration_minutes, 10),
+      buffer_minutes: parseInt(values.buffer_minutes, 10) || 0,
       shop_id: shop.id,
     }
-    if (editing) {
-      await supabase.from('services').update(payload).eq('id', editing.id)
-      toast.success('Serviço atualizado')
-    } else {
-      await supabase.from('services').insert(payload)
-      toast.success('Serviço cadastrado')
+
+    try {
+      if (editing) {
+        const { error } = await supabase.from('services').update(payload).eq('id', editing.id)
+        if (error) throw error
+        toast.success('Serviço atualizado')
+      } else {
+        const { error } = await supabase.from('services').insert(payload)
+        if (error) throw error
+        toast.success('Serviço cadastrado')
+      }
+      reset()
+      setOpen(false)
+      load()
+    } catch (err) {
+      toast.error('Erro ao salvar o serviço')
+      console.error(err)
     }
-    reset()
-    setOpen(false)
-    load()
   }
 
   async function remove(id: string) {
-    await supabase.from('services').delete().eq('id', id)
-    toast.success('Serviço removido')
-    load()
+    if (!confirm('Deseja realmente remover este serviço?')) return
+    const { error } = await supabase.from('services').delete().eq('id', id)
+    if (error) {
+      toast.error('Erro ao remover serviço')
+    } else {
+      toast.success('Serviço removido')
+      load()
+    }
   }
 
   function edit(service: Service) {
     setEditing(service)
-    setName(service.name)
-    setPrice(String(service.price))
-    setDuration(String(service.duration_minutes))
-    setBuffer(String(service.buffer_minutes ?? 0))
+    form.reset({
+      name: service.name,
+      price: String(service.price),
+      duration_minutes: String(service.duration_minutes),
+      buffer_minutes: String(service.buffer_minutes ?? 0),
+    })
     setOpen(true)
   }
 
@@ -131,13 +182,69 @@ function Services() {
               <DialogHeader>
                 <DialogTitle>{editing ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <Input placeholder="Nome do serviço" value={name} onChange={(e) => setName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                <Input placeholder="Preço (R$)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                <Input placeholder="Duração (min)" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                <Input placeholder="Tempo de limpeza / Buffer (min)" type="number" value={buffer} onChange={(e) => setBuffer(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar</Button>
-              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do serviço</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Corte de Cabelo" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preço (R$)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 50.00" type="number" step="0.01" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="duration_minutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duração (minutos)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 30" type="number" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="buffer_minutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tempo de limpeza / Buffer (minutos)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 5" type="number" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                    {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
+                  </Button>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>

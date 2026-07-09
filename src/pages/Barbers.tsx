@@ -1,13 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
-import { Plus, Pencil, Trash2, Users, Clock, Search, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import type { Barber, BarberAvailability } from '@/types/database'
@@ -16,14 +27,24 @@ const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
 
 type BarberFilter = 'all' | 'active' | 'inactive'
 
+// ─── Schema ────────────────────────────────────────────────────────────────────
+const barberSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  phone: z
+    .string()
+    .regex(/^\d{10,15}$/, 'Formato inválido. Use código do país + DDD + número (ex: 5511999999999)')
+    .or(z.literal('')),
+})
+
+type BarberFormValues = z.infer<typeof barberSchema>
+
+// ─── Component ─────────────────────────────────────────────────────────────────
 function Barbers() {
   const { shop, loading: shopLoading } = useAuth()
   const [barbers, setBarbers] = useState<Barber[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Barber | null>(null)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<BarberFilter>('all')
   const [availabilityCount, setAvailabilityCount] = useState<Record<string, number>>({})
@@ -31,6 +52,14 @@ function Barbers() {
   const [availOpen, setAvailOpen] = useState(false)
   const [availBarber, setAvailBarber] = useState<Barber | null>(null)
   const [availData, setAvailData] = useState<Record<number, { on: boolean; start: string; end: string }>>({})
+
+  const form = useForm<BarberFormValues>({
+    resolver: zodResolver(barberSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+    },
+  })
 
   useEffect(() => {
     load()
@@ -78,36 +107,57 @@ function Barbers() {
     }
   }
 
-  async function save() {
-    if (!shop || !name.trim()) return
-    const payload = {
-      name: name.trim(),
-      phone: phone.trim() || null,
-    }
-    if (editing) {
-      await supabase.from('barbers').update(payload).eq('id', editing.id)
-      toast.success('Barbeiro atualizado')
-    } else {
-      await supabase.from('barbers').insert({ ...payload, shop_id: shop.id })
-      toast.success('Barbeiro cadastrado')
-    }
-    setName('')
-    setPhone('')
+  function reset() {
+    form.reset({
+      name: '',
+      phone: '',
+    })
     setEditing(null)
-    setOpen(false)
-    load()
+  }
+
+  async function onSubmit(values: BarberFormValues) {
+    if (!shop) return
+    const payload = {
+      name: values.name.trim(),
+      phone: values.phone.trim() || null,
+    }
+
+    try {
+      if (editing) {
+        const { error } = await supabase.from('barbers').update(payload).eq('id', editing.id)
+        if (error) throw error
+        toast.success('Barbeiro atualizado')
+      } else {
+        const { error } = await supabase.from('barbers').insert({ ...payload, shop_id: shop.id })
+        if (error) throw error
+        toast.success('Barbeiro cadastrado')
+      }
+      reset()
+      setOpen(false)
+      load()
+    } catch (err) {
+      toast.error('Erro ao salvar barbeiro')
+      console.error(err)
+    }
   }
 
   async function remove(id: string) {
-    await supabase.from('barbers').delete().eq('id', id)
-    toast.success('Barbeiro removido')
-    load()
+    if (!confirm('Deseja realmente remover este barbeiro?')) return
+    const { error } = await supabase.from('barbers').delete().eq('id', id)
+    if (error) {
+      toast.error('Erro ao remover barbeiro')
+    } else {
+      toast.success('Barbeiro removido')
+      load()
+    }
   }
 
   function edit(barber: Barber) {
     setEditing(barber)
-    setName(barber.name)
-    setPhone(barber.phone ?? '')
+    form.reset({
+      name: barber.name,
+      phone: barber.phone ?? '',
+    })
     setOpen(true)
   }
 
@@ -156,7 +206,7 @@ function Barbers() {
               <p className="text-sm text-muted-foreground">Lista com disponibilidade e acesso rápido aos horários</p>
             </div>
           </div>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setEditing(null); setName(''); setPhone('') } }}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset() }}>
             <DialogTrigger>
               <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
                 <Plus className="mr-2 size-4" /> Novo Barbeiro
@@ -166,18 +216,42 @@ function Barbers() {
               <DialogHeader>
                 <DialogTitle>{editing ? 'Editar Barbeiro' : 'Novo Barbeiro'}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nome</label>
-                  <Input placeholder="Nome do barbeiro" value={name} onChange={(e) => setName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Telefone (WhatsApp)</label>
-                  <Input placeholder="Ex: 5511999999999" value={phone} onChange={(e) => setPhone(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
-                  <p className="text-xs text-muted-foreground">Para notificações de novos agendamentos.</p>
-                </div>
-                <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar</Button>
-              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome do barbeiro" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone (WhatsApp)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 5511999999999" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">Para notificações de novos agendamentos.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                    {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
+                  </Button>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
         </div>

@@ -1,11 +1,18 @@
+/**
+ * Componente Form customizado — substitui o shadcn/ui form sem deps externas do Radix.
+ * Estratégia: FormField usa useFormContext() internamente, sem prop `control` explícita.
+ * Isso elimina o conflito de generics TTransformedValues do react-hook-form v7+.
+ */
 import * as React from 'react'
 import {
   Controller,
   FormProvider,
   useFormContext,
-  type ControllerProps,
   type FieldPath,
   type FieldValues,
+  type ControllerRenderProps,
+  type ControllerFieldState,
+  type UseFormStateReturn,
 } from 'react-hook-form'
 import { cn } from '@/lib/utils'
 
@@ -13,31 +20,53 @@ import { cn } from '@/lib/utils'
 const Form = FormProvider
 
 // ─── FormField ──────────────────────────────────────────────────────────────────
-type FormFieldContextValue<
+type FormFieldContextValue = { name: string }
+const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue)
+
+type FormFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> = { name: TName }
+> = {
+  name: TName
+  /** Optional – ignored but accepted for API compat with shadcn callers. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control?: any
+  defaultValue?: TFieldValues[TName]
+  disabled?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rules?: any
+  shouldUnregister?: boolean
+  render: (props: {
+    field: ControllerRenderProps<TFieldValues, TName>
+    fieldState: ControllerFieldState
+    formState: UseFormStateReturn<TFieldValues>
+  }) => React.ReactElement
+}
 
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue,
-)
-
-const FormField = <
+function FormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
-  ...props
-}: ControllerProps<TFieldValues, TName>) => (
-  <FormFieldContext.Provider value={{ name: props.name }}>
-    <Controller {...props} />
-  </FormFieldContext.Provider>
-)
+>({ name, render, defaultValue, disabled, rules, shouldUnregister }: FormFieldProps<TFieldValues, TName>) {
+  // Always use FormProvider context — avoids the 3rd-generic mismatch on Control.
+  const { control } = useFormContext<TFieldValues>()
+  return (
+    <FormFieldContext.Provider value={{ name: name as string }}>
+      <Controller
+        name={name}
+        control={control}
+        render={render}
+        defaultValue={defaultValue}
+        disabled={disabled}
+        rules={rules}
+        shouldUnregister={shouldUnregister}
+      />
+    </FormFieldContext.Provider>
+  )
+}
 
 // ─── FormItem ────────────────────────────────────────────────────────────────────
 type FormItemContextValue = { id: string }
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue,
-)
+const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue)
 
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   const id = React.useId()
@@ -49,13 +78,19 @@ function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 // ─── useFormField ────────────────────────────────────────────────────────────────
-const useFormField = () => {
+function useFormField() {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
   const { getFieldState, formState } = useFormContext()
   const fieldState = getFieldState(fieldContext.name, formState)
   if (!fieldContext.name) throw new Error('useFormField must be used within <FormField>')
-  return { id: itemContext.id, name: fieldContext.name, formItemId: `${itemContext.id}-item`, formMessageId: `${itemContext.id}-msg`, ...fieldState }
+  return {
+    id: itemContext.id,
+    name: fieldContext.name,
+    formItemId: `${itemContext.id}-item`,
+    formMessageId: `${itemContext.id}-msg`,
+    ...fieldState,
+  }
 }
 
 // ─── FormLabel ───────────────────────────────────────────────────────────────────
