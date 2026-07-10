@@ -249,7 +249,7 @@ src/
 - **Commits:** `585ff2f` até `8448e2a` (10 commits), push para `origin main`
 - **Vercel deploy**: Múltiplos deploys em `https://appbarber-rose.vercel.app`
 - **Edge Function deploy**: `create-auth-user` deployada via `supabase functions deploy`
-- **⚠️ PENDENTE:** Executar `supabase/fix_rpc_only.sql` no Supabase SQL Editor (RPC functions + coluna `auth_email`)
+- **✔️ RESOLVIDO:** `supabase/fix_rpc_only.sql` já executado (RPCs + coluna `auth_email` no ar)
 
 ### Sessão 14 — Correção RLS, Booking Público e Dashboard (2026-07-09)
 - **Diagnóstico:** Erro `404 (Not Found)` ao inserir em `appointments` — na verdade era RLS bloqueando INSERT (42501), exibido como 404 pelo browser
