@@ -637,14 +637,16 @@ function PublicSite() {
             </div>
           )}
         </ScrollRevealSection>
+      </main>
 
-        {/* ── Agendamento Widget ── */}
+        {/* ── Agendamento Widget (full-width) ── */}
         <section
           className="relative bg-cover bg-center bg-no-repeat"
           style={bookingBg ? { backgroundImage: bookingBg } : undefined}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505] pointer-events-none" />
-          <div className="relative z-10 py-16 md:py-20">
+          <div className="relative z-10 py-24 md:py-32">
+          <div className="mx-auto max-w-6xl px-4">
           <ScrollRevealSection>
           <div id="agendar" className="scroll-mt-12">
             <SectionHeading overline="Reserva" title="Agende sua experiência" />
@@ -1110,8 +1112,11 @@ function PublicSite() {
             </div>
           </div>
         </ScrollRevealSection>
+          </div>
         </div>
         </section>
+
+      <main className="mx-auto max-w-6xl px-4 py-24 space-y-32">
 
         {/* ── Depoimentos / Social Proof ── */}
         <ScrollRevealSection>
