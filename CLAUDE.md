@@ -128,6 +128,7 @@ Se não: pedir para executar no Supabase Dashboard → SQL Editor.
   4. Created migration `20260710160000_fix_admin_rls_update.sql` (added `is_admin()` to SELECT/UPDATE/INSERT/DELETE policies on shops + whatsapp_configs)
   5. `src/pages/PublicSite.tsx`: left contact card hidden if empty
   6. `src/pages/AdminPage.tsx`: RLS fix applied — admin can now update/delete shops
+  7. `src/pages/PublicSite.tsx`: hero photo now also used as background for the booking wizard section (`#agendar`), wrapped with gradient fade edges for smooth transition
 - **SQL directly executed on Supabase Cloud**: UPDATE policies patched with `is_admin()`; storage policies replaced with `Gallery All` single policy
 - **Build**: ✅ `npm run build` passes
 
