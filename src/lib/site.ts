@@ -50,24 +50,6 @@ export function getPublicShopSlugFromLocation() {
 
 export function buildPublicSiteUrl(slug?: string | null) {
   const finalSlug = slug || 'barbearia'
-
-  if (typeof window === 'undefined') {
-    return `https://${finalSlug}.example.com`
-  }
-
-  if (isLocalHost(window.location.hostname)) {
-    return `${window.location.origin}/public/${encodeURIComponent(finalSlug)}`
-  }
-
-  const host = stripPort(window.location.hostname)
-  const labels = host.split('.')
-
-  if (labels.length >= 3) {
-    const baseDomain = labels.slice(1).join('.')
-    const port = window.location.port ? `:${window.location.port}` : ''
-    return `${window.location.protocol}//${finalSlug}.${baseDomain}${port}`
-  }
-
-  const port = window.location.port ? `:${window.location.port}` : ''
-  return `${window.location.protocol}//${finalSlug}.${host}${port}`
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://appbarber-rose.vercel.app'
+  return `${origin}/public/${encodeURIComponent(finalSlug)}`
 }
