@@ -267,5 +267,7 @@ src/
 - **`supabase/migrations/20260709230000_fix_public_rls_all_shops.sql`:** **CRIADO** — migration com correções RLS
 - **`src/pages/PublicSite.tsx`:** Adicionado botão "Voltar ao início" na tela de sucesso (ao lado de "Novo agendamento")
 - **`src/pages/Dashboard.tsx`:** Seletor de barbeiro usa `value=""` em vez de `value="all"` (Base UI exibia o valor bruto); dias da semana com mapa fixo pt-BR
-- **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (7 deploys)
+- **`src/pages/WhatsAppSettings.tsx`:** Chamadas a `ensureGalleryBucket()` antes de uploads; bucket `gallery` criado via SQL + policies de Storage RLS
+- **`supabase/storage_rls.sql`:** Políticas para anon ler/escrever/deletar objetos no bucket `gallery`
+- **Vercel deploy:** Múltiplos deploys em `https://appbarber-rose.vercel.app` (8 deploys)
 - **Git:** `7875832..cf1570c` + `cf1570c..2042256` + commit extra — push para `origin main`

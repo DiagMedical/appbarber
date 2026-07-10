@@ -8,7 +8,7 @@ import { MessageSquare, Check, X, Loader2, Save, Zap, ShieldCheck, Wifi, AlertTr
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { buildPublicSiteUrl } from '@/lib/site'
-import { uploadHeroPhoto, uploadGalleryPhoto, deletePhoto } from '@/lib/storage'
+import { ensureGalleryBucket, uploadHeroPhoto, uploadGalleryPhoto, deletePhoto } from '@/lib/storage'
 import type { WhatsAppConfig } from '@/types/database'
 
 const DAY_CONFIG = [
@@ -442,12 +442,13 @@ function WhatsAppSettings() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (!file || !shop) return
+                        await ensureGalleryBucket()
                         const url = await uploadHeroPhoto(shop.id, file)
                         if (url) {
                           setSiteHeroPhoto(url)
                           toast.success('Hero atualizado!')
                         } else {
-                          toast.error('Erro ao fazer upload. Crie o bucket "gallery" no Supabase.')
+                          toast.error('Erro ao fazer upload. Verifique se o bucket "gallery" existe.')
                         }
                       }}
                     />
@@ -467,6 +468,7 @@ function WhatsAppSettings() {
                         onChange={async (e) => {
                           const files = Array.from(e.target.files ?? [])
                           if (!files.length || !shop) return
+                          await ensureGalleryBucket()
                           const urls: string[] = []
                           for (const file of files) {
                             const url = await uploadGalleryPhoto(shop.id, file)
@@ -476,7 +478,7 @@ function WhatsAppSettings() {
                             setSiteGalleryPhotos([...siteGalleryPhotos, ...urls])
                             toast.success(`${urls.length} foto(s) adicionada(s)!`)
                           } else {
-                            toast.error('Erro ao fazer upload. Crie o bucket "gallery" no Supabase.')
+                            toast.error('Erro ao fazer upload. Verifique se o bucket "gallery" existe.')
                           }
                         }}
                       />
