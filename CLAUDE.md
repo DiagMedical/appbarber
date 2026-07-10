@@ -3,9 +3,18 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-## Current State (Session 15 Complete — Fix Upload + Save Working Hours)
+## Current State (Session 16 Complete — Fix 8 Bugs Técnicos)
 
-All code fully written, validated with `npm run build`, and pushed to GitHub (`origin/main`).
+All code fully written, validated with `npm run build`.
+
+### Completed in Session 16 — Correção de 8 Bugs da Fase 1 (2026-07-10)
+- **[BUG-1] `src/lib/availability.ts:45`**: `new Date(dateStr + 'T00:00:00')` substituído por `startOfUTC3DayISO()`/`endOfUTC3DayISO()` do `timezone.ts`
+- **[BUG-2] `src/lib/evolution.ts:9-18`**: `getConfig(shopId)` agora filtra por `shop_id`. `sendText()` aceita `shopId` no params. Todos os callers atualizados.
+- **[BUG-3] `src/pages/Appointments.tsx:121`**: Guard `if (clientIds.length > 0)` antes do `.in('id', clientIds)` para evitar SQL inválido
+- **[BUG-4/5] `Booking.tsx` + `Appointments.tsx`**: Buffer minutes incluídos no `getAvailableSlots()`. `endTime` mantém só `duration_minutes` (sem buffer)
+- **[BUG-6] `AdminPage.tsx:151,171`**: RPCs `admin_update_shop`/`admin_delete_shop` com fallback para `supabase.from('shops').update()/delete()` direto
+- **[BUG-7] `PublicSite.tsx:232`**: Dep `serviceIds` (array) → `serviceIds.join(',')` (string)
+- **[BUG-8] `PublicSite.tsx` (5x)**: `text-neutral-450` → `text-neutral-400`
 
 ### Completed in Session 11 — RHF+Zod Forms
 - **`src/pages/Barbers.tsx`**, **`Clients.tsx`**, **`Services.tsx`**, **`ShopSettings.tsx`**: Formulários migrados para React Hook Form + Zod
@@ -88,37 +97,21 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 
 ## 🚨 NEXT STEPS FOR ANY AGENT (DO NOT SKIP OR REORDER)
 
-### STEP 1: SQL Pendente no Cloud (ROADMAP.md Fase 0)
-Verificar se o usuário já executou as migrações SQL pendentes:
-- `buffer_minutes` em services
-- `cancel_token` em appointments
-- `phone` em barbers
-- `reengage_interval_days` em whatsapp_configs
-- Cron `send-reengage`
-Se não: pedir para executar no Supabase Dashboard → SQL Editor.
+### ✅ FASE 0 — Completa (validada via CLI em 2026-07-10)
+- Todos os SQLs aplicados no Cloud (buffer_minutes, cancel_token, phone, reengage_interval_days, cron send-reengage)
+- Todas as Edge Functions deployadas (notify-appointment v5, reengage v2, reminder v1, create-auth-user v2)
+- Git push realizado
 
-### STEP 2: Edge Functions — Deploy Pendente
-- `notify-appointment`: precisa rodar `npx supabase functions deploy notify-appointment --project-ref chtjqqtvvlamrdesaiwp`
-- `reengage`: precisa rodar `npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp`
-
-### STEP 3: Bugs Conhecidos (corrigir em ordem)
-1. **[CRITICAL] RLS: UPDATE policies sem `is_admin()`** — ✅ _corrigido na sessão 15 (SQL executado diretamente no Cloud)_
-2. **[CRITICAL] `src/lib/availability.ts:45-46`** — `new Date(dateStr + 'T00:00:00')` usa timezone local do browser, não UTC-3. Quebra disponibilidade para usuários fora do fuso -03.
-3. **[CRITICAL] `src/lib/evolution.ts:9-18`** — `getConfig()` retorna primeira config ativa ignorando shop_id. Todas as lojas compartilham mesma instância WhatsApp.
-4. **[HIGH] `src/pages/Appointments.tsx:121`** — `clientIds` vazio crasha Supabase (`.in('id', [])`).
-5. **[HIGH] `src/pages/Booking.tsx:96,148`** — Buffer minutes ignorados na verificação de disponibilidade.
-6. **[HIGH] `src/pages/Appointments.tsx:73`** — Buffer minutes ignorados na verificação de disponibilidade.
-7. **[MEDIUM] `src/pages/AdminPage.tsx`** — RPCs `admin_update_shop`/`admin_delete_shop` podem não existir no banco.
-8. **[MEDIUM] `src/pages/PublicSite.tsx:232`** — `serviceIds` array no deps causa re-fetch infinito.
-9. **[MEDIUM] `src/pages/PublicSite.tsx`** — Classes Tailwind inválidas `text-neutral-450`.
-
-### STEP 4: Deploy Pendente (FASE 0 — manual)
-- **[SQL-A]** Rodar no Supabase SQL Editor: `ALTER TABLE services ADD COLUMN IF NOT EXISTS buffer_minutes INTEGER NOT NULL DEFAULT 0;`
-- **[SQL-B]** Rodar no Supabase SQL Editor: `cancel_token` em appointments, `phone` em barbers, `reengage_interval_days` em whatsapp_configs
-- **[SQL-C]** Rodar no Supabase SQL Editor: cron `send-reengage` no pg_cron (13h UTC diário)
-- **[DEPLOY]** `npx supabase functions deploy notify-appointment --project-ref chtjqqtvvlamrdesaiwp`
-- **[DEPLOY]** `npx supabase functions deploy reengage --project-ref chtjqqtvvlamrdesaiwp`
-- **[GIT]** `git push origin main` (enviar tudo que está local para o Vercel)
+### ✅ STEP 1-3: Todos os 8 Bugs Corrigidos na Sessão 16 (2026-07-10)
+| Bug | Arquivo | Fix |
+|-----|---------|-----|
+| BUG-1 | `availability.ts:45` | `startOfUTC3DayISO()` em vez de `new Date()` local |
+| BUG-2 | `evolution.ts:9` | `getConfig(shopId)` filtra por `shop_id` |
+| BUG-3 | `Appointments.tsx:121` | Guard `clientIds.length > 0` |
+| BUG-4/5 | `Booking.tsx` + `Appointments.tsx` | Buffer minutes no `getAvailableSlots()` |
+| BUG-6 | `AdminPage.tsx:151,171` | Fallback RPC → UPDATE/DELETE direto |
+| BUG-7 | `PublicSite.tsx:232` | `serviceIds.join(',')` no deps |
+| BUG-8 | `PublicSite.tsx` (5x) | `text-neutral-450` → `text-neutral-400` |
 
 ### STEP 5: Phase 3 — Novas Features (só após bugs + deploy resolvidos)
 1. **[FEAT-4] Multi-serviço no Admin**: `Appointments.tsx` + `Booking.tsx` — replicar lógica de `serviceIds[]` e `totalDuration` do `PublicSite.tsx`

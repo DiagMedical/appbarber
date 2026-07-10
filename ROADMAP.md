@@ -23,64 +23,32 @@
 
 ## 📋 ESTADO ATUAL DO CÓDIGO (atualizado em 2026-07-10)
 
-### O que está feito no código mas AINDA NÃO foi aplicado em produção:
+### ✅ Fase 0 completa + 8 bugs da Fase 1 corrigidos na Sessão 16
 
-As migrations abaixo foram criadas na pasta `supabase/migrations/` mas **ainda não foram executadas no Cloud do Supabase**. O banco em produção não tem essas colunas ainda.
+### ✅ Tudo aplicado em produção (validado em 2026-07-10 via CLI)
 
-| Migration | O que adiciona | Status Cloud |
+| Migration | O que adiciona | Status |
 |---|---|---|
-| `20260709200000_add_buffer_minutes_to_services.sql` | `services.buffer_minutes` | ⚠️ Pendente |
-| `20260709210000_reengage_cron.sql` | cron `send-reengage` | ⚠️ Pendente |
-| `20260709220000_roadmap_improvements.sql` | `appointments.cancel_token`, `barbers.phone`, `whatsapp_configs.reengage_interval_days` | ⚠️ Pendente |
+| `20260709200000_add_buffer_minutes_to_services.sql` | `services.buffer_minutes` | ✅ Aplicado |
+| `20260709210000_reengage_cron.sql` | cron `send-reengage` | ✅ Agendado |
+| `20260709220000_roadmap_improvements.sql` | `appointments.cancel_token`, `barbers.phone`, `whatsapp_configs.reengage_interval_days` | ✅ Aplicado |
 
-As Edge Functions abaixo foram **atualizadas no código** mas ainda não foram deployadas:
-
-| Function | Status Deploy |
+| Function | Status |
 |---|---|
-| `supabase/functions/notify-appointment/index.ts` | ⚠️ Deploy pendente |
-| `supabase/functions/reengage/index.ts` | ⚠️ Deploy pendente |
+| `notify-appointment` | ✅ v5 deployada |
+| `reengage` | ✅ v2 deployada |
+| `reminder` | ✅ v1 deployada |
+| `create-auth-user` | ✅ v2 deployada |
 
 ---
 
-## 🚨 FASE 0 — Deploy Pendente (FAZER ANTES DE QUALQUER CÓDIGO)
+## 🚨 FASE 0 — Deploy Pendente ✅ _Completa em 2026-07-10_
 
-Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
+Todas as ações validadas via `supabase db query --linked` e `supabase functions list`.
 
-- [ ] **[SQL-A]** Rodar no Supabase Dashboard → SQL Editor:
-  ```sql
-  ALTER TABLE services
-    ADD COLUMN IF NOT EXISTS buffer_minutes INTEGER NOT NULL DEFAULT 0;
-  ```
-  > Sem isso, criar/editar serviços retorna erro 400 em produção.
-
-- [ ] **[SQL-B]** Rodar no Supabase Dashboard → SQL Editor (migration 20260709220000):
-  ```sql
-  ALTER TABLE appointments
-    ADD COLUMN IF NOT EXISTS cancel_token UUID DEFAULT gen_random_uuid();
-  UPDATE appointments SET cancel_token = gen_random_uuid() WHERE cancel_token IS NULL;
-
-  ALTER TABLE barbers
-    ADD COLUMN IF NOT EXISTS phone TEXT;
-
-  ALTER TABLE whatsapp_configs
-    ADD COLUMN IF NOT EXISTS reengage_interval_days INTEGER DEFAULT 22;
-  ```
-
-- [ ] **[SQL-C]** Rodar no Supabase Dashboard → SQL Editor (cron do re-engajamento):
-  ```sql
-  SELECT cron.schedule(
-    'send-reengage',
-    '0 13 * * *',
-    $$
-      SELECT net.http_post(
-        url    := 'https://chtjqqtvvlamrdesaiwp.supabase.co/functions/v1/reengage',
-        body   := '{}'::jsonb,
-        params := '{"Content-Type":"application/json"}'::jsonb
-      );
-    $$
-  );
-  ```
-  > Usar URL hardcoded. A migration usa `current_setting()` que pode não existir no Cloud.
+- [x] **[SQL-A]** `services.buffer_minutes` adicionada ✅ _2026-07-10_
+- [x] **[SQL-B]** `cancel_token`, `phone`, `reengage_interval_days` adicionadas ✅ _2026-07-10_
+- [x] **[SQL-C]** Cron `send-reengage` (0 13 * * *) agendado ✅ _2026-07-10_
 
 - [x] **[DEPLOY-A]** Deploy da Edge Function `notify-appointment` ✅ _2026-07-09_
   ```bash
@@ -127,6 +95,10 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 - [ ] Migration aplicada no Cloud (ver SQL-B da Fase 0)
 
 ---
+
+## 🔴 FASE 1 — Bugs Críticos ✅ _Completa em 2026-07-10_
+
+Todos os 8 bugs corrigidos na Sessão 16. Build validado após cada correção.
 
 ## 🟡 FASE 2 — Funcionalidades Operacionais
 
@@ -219,13 +191,13 @@ Estas ações são **manuais** e desbloquearão os bugs ativos em produção.
 |---|---|---|---|
 | ~~RHF + Zod~~ | ~~`ShopSettings.tsx`~~ | ~~Resolvido em `0a6b0ea`~~ | ~~Alta~~ |
 | ✅ RLS is_admin | Sessions 14-15 | Policies de shops e whatsapp_configs corrigidas | Crítica |
-| 🔴 Timezone | `availability.ts:45` | `new Date('T00:00:00')` não é UTC-3 | Crítica |
-| 🔴 Shop isolation | `evolution.ts:9-18` | `getConfig()` ignora shop_id | Crítica |
-| 🟠 Empty array | `Appointments.tsx:121` | `.in('id', [])` crasha | Alta |
-| 🟠 Buffer | `Booking.tsx:96,148` / `Appointments.tsx:73` | Buffer minutes ignorados | Alta |
-| 🟡 RPCs | `AdminPage.tsx` | RPCs update/delete podem não existir | Média |
-| 🟡 Deps loop | `PublicSite.tsx:232` | Re-fetch infinito | Média |
-| 🟡 Tailwind | `PublicSite.tsx` | `text-neutral-450` inválida | Média |
+| ✅ Timezone | `availability.ts:45` | Corrigido — `startOfUTC3DayISO()` | Sessão 16 |
+| ✅ Shop isolation | `evolution.ts:9-18` | Corrigido — `getConfig(shopId)` | Sessão 16 |
+| ✅ Empty array | `Appointments.tsx:121` | Corrigido — guard `length > 0` | Sessão 16 |
+| ✅ Buffer | `Booking.tsx:96,148` / `Appointments.tsx:73` | Corrigido — buffer incluído | Sessão 16 |
+| ✅ RPCs | `AdminPage.tsx` | Corrigido — fallback direto | Sessão 16 |
+| ✅ Deps loop | `PublicSite.tsx:232` | Corrigido — `join(',')` | Sessão 16 |
+| ✅ Tailwind | `PublicSite.tsx` | Corrigido — `neutral-400` | Sessão 16 |
 | Checkmark ROADMAP | Este arquivo | Marcar checkboxes após concluir cada item | Contínua |
 
 ---
@@ -244,7 +216,7 @@ Tabelas principais:
                        status, cancel_token*, notes
   whatsapp_configs   → shop_id, server_url, instance_name, api_key, active, reengage_interval_days*
 
-* colunas adicionadas em 2026-07-09 — ainda não aplicadas no Cloud (ver Fase 0)
+* colunas adicionadas em 2026-07-09 — ✅ aplicadas no Cloud
 
 Edge Functions:
   notify-appointment → webhook do banco (INSERT/UPDATE de appointments)

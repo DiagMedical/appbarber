@@ -92,7 +92,7 @@ function Booking() {
     if (barberId && serviceId && date) {
       setTime('')
       setLoadingSlots(true)
-      const dur = selectedService?.duration_minutes ?? 30
+      const dur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
       getAvailableSlots(barberId, date, dur).then((slots) => {
         setAvailableSlots(slots)
         setLoadingSlots(false)
@@ -144,8 +144,8 @@ function Booking() {
     setError('')
 
     try {
-      const dur = selectedService?.duration_minutes ?? 30
-      const stillAvailable = await getAvailableSlots(barberId, date, dur)
+      const slotDur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
+      const stillAvailable = await getAvailableSlots(barberId, date, slotDur)
       if (!stillAvailable.includes(time)) {
         setError('Este horário não está mais disponível. Escolha outro.')
         setSaving(false)
@@ -163,7 +163,7 @@ function Booking() {
       }
 
       const startTime = buildISO(date, time)
-      const endTime = new Date(startTime.getTime() + dur * 60000)
+      const endTime = new Date(startTime.getTime() + (selectedService?.duration_minutes ?? 30) * 60000)
 
       await supabase.from('appointments').insert({
         shop_id: shop.id,
@@ -185,7 +185,7 @@ function Booking() {
         `✂️ ${selectedBarber?.name ?? 'Barbeiro'}`,
       ].join('\n')
 
-      const sent = await sendText({ number: cleanPhone, text: msg })
+      const sent = await sendText({ number: cleanPhone, text: msg, shopId: shop.id })
       if (sent) toast.success('Confirmação enviada via WhatsApp')
       else toast.warning('Agendamento criado, mas WhatsApp não configurado')
 

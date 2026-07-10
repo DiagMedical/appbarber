@@ -69,7 +69,7 @@ function Appointments() {
     if (barberId && serviceId && date) {
       setTime('')
       setLoadingSlots(true)
-      const dur = selectedService?.duration_minutes ?? 30
+      const dur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
       getAvailableSlots(barberId, date, dur)
         .then((slots) => {
           setAvailableSlots(slots)
@@ -118,8 +118,11 @@ function Appointments() {
 
       const rawAppointments = apptRes.data as Appointment[]
       const clientIds = [...new Set(rawAppointments.map((a) => a.client_id))]
-      const { data: clients } = await supabase.from('clients').select('id, name, phone').eq('shop_id', shop.id).in('id', clientIds)
-      const clientMap = new Map((clients ?? []).map((c: { id: string; name: string; phone: string }) => [c.id, c]))
+      let clientMap = new Map<string, { id: string; name: string; phone: string }>()
+      if (clientIds.length > 0) {
+        const { data: clients } = await supabase.from('clients').select('id, name, phone').eq('shop_id', shop.id).in('id', clientIds)
+        clientMap = new Map((clients ?? []).map((c) => [c.id, c]))
+      }
 
       setAppointments(
         rawAppointments.map((a) => {
@@ -190,8 +193,8 @@ function Appointments() {
         clientId = newClient.id as string
       }
 
-      const dur = selectedService?.duration_minutes ?? 30
-      const stillAvailable = await getAvailableSlots(barberId, date, dur)
+      const slotDur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
+      const stillAvailable = await getAvailableSlots(barberId, date, slotDur)
       if (!stillAvailable.includes(time)) {
         toast.error('Este horário não está mais disponível. Escolha outro.')
         setSaving(false)
@@ -199,7 +202,7 @@ function Appointments() {
       }
 
       const startTime = new Date(`${date}T${time}:00-03:00`)
-      const endTime = new Date(startTime.getTime() + dur * 60000)
+      const endTime = new Date(startTime.getTime() + (selectedService?.duration_minutes ?? 30) * 60000)
 
       await supabase.from('appointments').insert({
         shop_id: shop.id,
@@ -213,7 +216,7 @@ function Appointments() {
 
       const barber = barbers.find((b) => b.id === barberId)
       const msg = `🪒 *AppBarber*\n\nOlá ${clientName}, seu agendamento foi confirmado!\n\n📅 ${date} às ${time}\n💈 ${selectedService?.name}\n✂️ ${barber?.name}`
-      const sent = await sendText({ number: clientPhone, text: msg })
+      const sent = await sendText({ number: clientPhone, text: msg, shopId: shop.id })
       if (sent) toast.success('Agendamento criado e WhatsApp enviado!')
       else toast.success('Agendamento criado!')
 
@@ -228,6 +231,7 @@ function Appointments() {
   }
 
   async function handleStatusChange(apt: AppointmentItem, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') {
+    if (!shop) return
     await supabase.from('appointments').update({ status }).eq('id', apt.id)
     toast.success(`Agendamento ${statusLabels[status]?.toLowerCase()}`)
 
@@ -238,7 +242,7 @@ function Appointments() {
         ? `❌ *AppBarber*\n\nSeu agendamento foi cancelado. Entre em contato para reagendar.`
         : `🪒 *AppBarber*\n\nSeu agendamento foi confirmado!`
 
-      const sent = await sendText({ number: apt.clientPhone, text: msg })
+      const sent = await sendText({ number: apt.clientPhone, text: msg, shopId: shop.id })
       if (!sent) toast.warning('WhatsApp não configurado ou instância offline')
     }
 

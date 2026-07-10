@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { formatTime, getUTC3DayOfWeek } from './timezone'
+import { formatTime, getUTC3DayOfWeek, startOfUTC3DayISO, endOfUTC3DayISO } from './timezone'
 import type { BarberAvailability } from '@/types/database'
 
 export function generateTimeSlots(start: string, end: string, duration: number): string[] {
@@ -42,15 +42,15 @@ export async function getAvailableSlots(
   const availList = (avail as BarberAvailability[]) ?? []
   if (availList.length === 0) return []
 
-  const dayStart = new Date(dateStr + 'T00:00:00')
-  const dayEnd = new Date(dateStr + 'T23:59:59')
+  const dayStart = startOfUTC3DayISO(dateStr)
+  const dayEnd = endOfUTC3DayISO(dateStr)
 
   let query = supabase
     .from('appointments')
     .select('start_time, end_time, services(buffer_minutes)')
     .eq('barber_id', barberId)
-    .gte('start_time', dayStart.toISOString())
-    .lte('start_time', dayEnd.toISOString())
+    .gte('start_time', dayStart)
+    .lte('start_time', dayEnd)
     .neq('status', 'cancelled')
 
   if (excludeAppointmentId) {

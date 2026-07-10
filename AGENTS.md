@@ -273,6 +273,16 @@ src/
 - **Git:** `7875832..208babd` — push para `origin main`
 - **⚠️ PENDENTE (resolvido na Sessão 15):** Upload de fotos no Storage não funciona — bucket `gallery` foi criado + políticas RLS adicionadas, mas upload ainda falha (verificar `ensureGalleryBucket()` e permissões Storage no Supabase Dashboard)
 
+### Sessão 16 — Correção de 8 Bugs Técnicos (2026-07-10)
+- **BUG-1** `src/lib/availability.ts:45`: Substituído `new Date(dateStr + 'T00:00:00')` por `startOfUTC3DayISO()`/`endOfUTC3DayISO()` do `timezone.ts` — garantia de UTC-3
+- **BUG-2** `src/lib/evolution.ts:9-18`: `getConfig()` agora aceita `shopId` e filtra `.eq('shop_id', shopId)`. `sendText()` inclui `shopId` no params. Callers em Appointments, Booking, PublicSite atualizados
+- **BUG-3** `src/pages/Appointments.tsx:121`: Adicionado `if (clientIds.length > 0)` antes do `.in('id', clientIds)` para evitar SQL inválido
+- **BUG-4/5** `src/pages/Booking.tsx:96,148` + `Appointments.tsx:73,193`: `getAvailableSlots()` agora recebe `duration_minutes + buffer_minutes`. `endTime` mantém só `duration_minutes` (variável `slotDur` renomeada)
+- **BUG-6** `src/pages/AdminPage.tsx:151,171`: RPCs `admin_update_shop`/`admin_delete_shop` com try/catch → fallback para `.update()`/`.delete()` direto na tabela `shops`
+- **BUG-7** `src/pages/PublicSite.tsx:232`: Dep `serviceIds` (array, referência) → `serviceIds.join(',')` (string, valor)
+- **BUG-8** `src/pages/PublicSite.tsx` (5 ocorrências): `text-neutral-450` → `text-neutral-400` (classe inexistente no Tailwind v4)
+- **build:** `npm run build` validado após cada correção
+
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:
   - `ensureGalleryBucket()` tentava criar bucket via client-side (`createBucket` requer `service_role`) — sempre falhava

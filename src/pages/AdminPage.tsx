@@ -148,13 +148,24 @@ function AdminPage() {
     if (!editingShop) return
     setSaving(true)
 
-    const { error } = await supabase.rpc('admin_update_shop', {
+    let error: { message: string } | null = null
+    const { error: rpcErr } = await supabase.rpc('admin_update_shop', {
       shop_id: editingShop.id,
       shop_name: editName.trim(),
       shop_phone: editPhone.trim() || null,
       shop_address: editAddress.trim() || null,
       shop_instagram: editInstagram.trim() || null,
     })
+
+    if (rpcErr) {
+      const { error: directErr } = await supabase.from('shops').update({
+        name: editName.trim(),
+        phone: editPhone.trim() || null,
+        address: editAddress.trim() || null,
+        instagram: editInstagram.trim() || null,
+      }).eq('id', editingShop.id).select('id').maybeSingle()
+      error = directErr
+    }
 
     if (error) {
       toast.error('Erro ao salvar: ' + error.message)
@@ -168,7 +179,12 @@ function AdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir esta barbearia? Todos os dados associados serão perdidos.')) return
-    const { error } = await supabase.rpc('admin_delete_shop', { shop_id: id })
+    let error: { message: string } | null = null
+    const { error: rpcErr } = await supabase.rpc('admin_delete_shop', { shop_id: id })
+    if (rpcErr) {
+      const { error: directErr } = await supabase.from('shops').delete().eq('id', id)
+      error = directErr
+    }
     if (error) {
       toast.error('Erro ao excluir: ' + error.message)
     } else {

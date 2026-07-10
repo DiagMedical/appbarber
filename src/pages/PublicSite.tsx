@@ -229,7 +229,7 @@ function PublicSite() {
       .catch(() => { if (active) setAvailableSlots([]) })
       .finally(() => { if (active) setLoadingSlots(false) })
     return () => { active = false }
-  }, [shop?.id, barberId, serviceIds, date, totalDuration, totalBuffer])
+  }, [shop?.id, barberId, serviceIds.join(','), date, totalDuration, totalBuffer])
 
   const dateList = useMemo(() => {
     const days = []
@@ -393,7 +393,7 @@ function PublicSite() {
         'Agradecemos a preferência! Te esperamos lá.',
       ].join('\n')
       
-      const sent = await sendText({ number: cleanPhone, text: message })
+      const sent = await sendText({ number: cleanPhone, text: message, shopId: shop.id })
       if (sent) toast.success('Confirmação enviada no seu WhatsApp!')
       else toast.warning('Agendamento criado! Notificação de WhatsApp pendente.')
       setSuccess(true)
@@ -595,7 +595,7 @@ function PublicSite() {
                       <span className="shrink-0 font-semibold text-amber-500">{formatMoney(Number(service.price))}</span>
                     </div>
                     {service.description && (
-                      <p className="text-sm text-neutral-450 leading-relaxed">{service.description}</p>
+                      <p className="text-sm text-neutral-400 leading-relaxed">{service.description}</p>
                     )}
                   </div>
                   <div className="mt-4 pt-3 border-t border-white/[0.03] flex items-center gap-1.5 text-xs text-neutral-500">
@@ -631,7 +631,7 @@ function PublicSite() {
                     )}
                   </div>
                   <h3 className="text-base font-semibold text-white group-hover:text-amber-400 transition-colors">{barber.name}</h3>
-                  <p className="mt-2 text-sm text-neutral-450 leading-relaxed">{barber.bio || 'Especialista em barbearia clássica e moderna com foco na excelência e estilo.'}</p>
+                  <p className="mt-2 text-sm text-neutral-400 leading-relaxed">{barber.bio || 'Especialista em barbearia clássica e moderna com foco na excelência e estilo.'}</p>
                 </div>
               ))}
             </div>
@@ -678,7 +678,7 @@ function PublicSite() {
                         </button>
                       ))}
                     </div>
-                    <span className="text-xs text-neutral-450 uppercase tracking-wider">Etapa {step} de 4</span>
+                    <span className="text-xs text-neutral-400 uppercase tracking-wider">Etapa {step} de 4</span>
                   </div>
 
                   {/* STEP 1: SERVICES SELECTION */}
@@ -739,7 +739,7 @@ function PublicSite() {
                                     <span className="shrink-0 text-sm font-semibold text-amber-500">{formatMoney(Number(s.price))}</span>
                                   </div>
                                   {s.description && (
-                                    <p className="text-xs text-neutral-450 line-clamp-2 leading-relaxed">{s.description}</p>
+                                    <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">{s.description}</p>
                                   )}
                                 </div>
                                 <div className="mt-3 pt-2 border-t border-white/[0.02] flex items-center justify-between text-[11px] text-neutral-500">
@@ -818,7 +818,7 @@ function PublicSite() {
                                 </div>
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-semibold text-white group-hover:text-amber-400 transition-colors">{b.name}</h4>
-                                  <p className="text-xs text-neutral-450 line-clamp-2 leading-relaxed">{b.bio || 'Profissional especialista da casa.'}</p>
+                                  <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed">{b.bio || 'Profissional especialista da casa.'}</p>
                                 </div>
                               </div>
                             )
