@@ -404,20 +404,20 @@ src/
 - Build validado (`npm run build`) em todas as sessões.
 - Commits sincronizados no `origin/main`.
 
+### ✅ Concluído (adicionado nesta atualização)
+- Deploy das variáveis de ambiente na Vercel (`VITE_ENABLE_BARBER_PUSH=true`, `VITE_VAPID_PUBLIC_KEY=...`).
+- Migrations de push aplicadas no Supabase (`20260730_create_push_subscriptions.sql`, `20260731_add_notifications_enabled_to_barbers.sql`, `20260732_add_barber_push_trigger.sql`).
+
 ### 🔧 Pendente / Bloqueado
-1. **Deploy das variáveis de ambiente na Vercel**  
-   - `VITE_ENABLE_BARBER_PUSH=true`  
-   - `VITE_VAPID_PUBLIC_KEY=<chave pública VAPID>`  
-2. **Aplicar migrations pendentes no Supabase (se houver)** – verificar se todas as 3 migrations de push (`20260730…`, `20260731…`, `20260732…`) já estão aplicadas no projeto linked.  
-3. **Testes automatizados** – adicionar testes unitários/integração para:  
+1. **Testes automatizados** – adicionar testes unitários/integração para:  
    - Criação de serviço com `is_combo`.  
    - Fluxo de push (subscribe → trigger → receive).  
    - RLS multi-tenant (admin vs cliente vs anon).  
-4. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
+2. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
    - Criação do bucket `gallery` e policies de Storage.  
    - Inserção das VAPID keys no Supabase Edge Function secrets.  
    - Como rodar `supabase db push` / `supabase functions deploy`.  
-5. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
+3. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
 
 ### 📌 Como a IA deve proceder
 - Ler este bloco para saber o que **já está pronto** (✅) e o que **falta** (🔧).  
