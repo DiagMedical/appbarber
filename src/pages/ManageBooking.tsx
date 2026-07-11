@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { CheckCircle, XCircle, Scissors, Clock, AlertTriangle, Loader2, Calendar } from 'lucide-react'
+import { CheckCircle, XCircle, Scissors, Clock, AlertTriangle, Loader2, Calendar, ArrowLeft } from 'lucide-react'
+import { getAvailableSlots } from '@/lib/availability'
+import { getUTC3DateKey } from '@/lib/timezone'
 
 /** Quantas horas antes do horário o cliente pode cancelar */
 const CANCEL_WINDOW_HOURS = 2
@@ -9,14 +11,17 @@ const CANCEL_WINDOW_HOURS = 2
 interface AppointmentInfo {
   id: string
   start_time: string
+  end_time: string
   status: string
+  barber_id: string
   barber_name: string
   service_name: string
+  client_id: string
   client_name: string
   shop_name: string
 }
 
-type PageState = 'loading' | 'ready' | 'too-late' | 'already-cancelled' | 'cancelled' | 'error' | 'not-found'
+type PageState = 'loading' | 'ready' | 'too-late' | 'already-cancelled' | 'cancelled' | 'rescheduled' | 'error' | 'not-found'
 
 export default function ManageBooking() {
   const { slug } = useParams<{ slug: string }>()
@@ -27,6 +32,12 @@ export default function ManageBooking() {
   const [appointment, setAppointment] = useState<AppointmentInfo | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [rescheduling, setRescheduling] = useState(false)
+  const [newDate, setNewDate] = useState('')
+  const [newTime, setNewTime] = useState('')
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [reschedulingError, setReschedulingError] = useState('')
 
   useEffect(() => {
     if (!token) {
@@ -44,7 +55,10 @@ export default function ManageBooking() {
         .select(`
           id,
           start_time,
+          end_time,
           status,
+          barber_id,
+          client_id,
           barbers ( name ),
           services ( name ),
           clients ( name ),
@@ -74,9 +88,12 @@ export default function ManageBooking() {
       const info: AppointmentInfo = {
         id: data.id,
         start_time: data.start_time,
+        end_time: data.end_time,
         status: data.status,
+        barber_id: data.barber_id,
         barber_name: (data.barbers as unknown as { name: string } | null)?.name ?? 'Barbeiro',
         service_name: serviceName,
+        client_id: data.client_id,
         client_name: (data.clients as unknown as { name: string } | null)?.name ?? 'Cliente',
         shop_name: (data.shops as unknown as { name: string } | null)?.name ?? 'Barbearia',
       }
@@ -108,6 +125,55 @@ export default function ManageBooking() {
     } catch {
       setPageState('error')
       setErrorMsg('Não foi possível carregar as informações do agendamento.')
+    }
+  }
+
+  const totalDuration = useMemo(() => {
+    if (!appointment) return 30
+    return Math.max(
+      Math.round((new Date(appointment.end_time).getTime() - new Date(appointment.start_time).getTime()) / 60000),
+      30
+    )
+  }, [appointment])
+
+  const todayStr = useMemo(() => getUTC3DateKey(), [])
+
+  useEffect(() => {
+    if (!appointment || !newDate) {
+      setAvailableSlots([])
+      return
+    }
+    setNewTime('')
+    setLoadingSlots(true)
+    getAvailableSlots(appointment.barber_id, newDate, totalDuration)
+      .then((slots) => setAvailableSlots(slots))
+      .catch(() => setAvailableSlots([]))
+      .finally(() => setLoadingSlots(false))
+  }, [appointment?.barber_id, newDate, totalDuration])
+
+  async function handleReschedule() {
+    if (!appointment || !newDate || !newTime) return
+    setReschedulingError('')
+    try {
+      const stillAvailable = await getAvailableSlots(appointment.barber_id, newDate, totalDuration)
+      if (!stillAvailable.includes(newTime)) {
+        setReschedulingError('Este horário não está mais disponível. Escolha outro.')
+        return
+      }
+      const startTime = new Date(`${newDate}T${newTime}:00-03:00`)
+      const endTime = new Date(startTime.getTime() + totalDuration * 60000)
+      const { error } = await supabase
+        .from('appointments')
+        .update({
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          status: 'pending',
+        })
+        .eq('id', appointment.id)
+      if (error) throw error
+      setPageState('rescheduled')
+    } catch {
+      setReschedulingError('Erro ao reagendar. Tente novamente.')
     }
   }
 
@@ -213,6 +279,73 @@ export default function ManageBooking() {
                 </div>
               </div>
 
+              {/* Botão de reagendar */}
+              {!rescheduling ? (
+                <button
+                  onClick={() => setRescheduling(true)}
+                  className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm font-semibold text-amber-400 transition-all hover:bg-amber-500/20"
+                >
+                  <Calendar className="size-4" />
+                  Reagendar
+                </button>
+              ) : (
+                <div className="mb-4 space-y-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+                  <p className="text-sm font-medium text-amber-400">Escolher nova data</p>
+                  <input
+                    type="date"
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    min={todayStr}
+                    className="flex h-10 w-full rounded-lg border border-amber-500/20 bg-transparent px-3 py-2 text-sm text-neutral-200 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                  {newDate && loadingSlots && (
+                    <div className="flex items-center gap-2 py-2 text-sm text-neutral-500">
+                      <div className="size-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+                      Verificando horários...
+                    </div>
+                  )}
+                  {newDate && !loadingSlots && availableSlots.length === 0 && (
+                    <p className="text-sm text-red-400">Nenhum horário disponível nesta data.</p>
+                  )}
+                  {newDate && availableSlots.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {availableSlots.map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setNewTime(slot)}
+                          className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                            newTime === slot
+                              ? 'border-amber-500 bg-amber-600 text-neutral-900 shadow-md'
+                              : 'border-amber-500/20 text-neutral-400 hover:border-amber-500/50 hover:bg-amber-500/10'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {reschedulingError && (
+                    <p className="text-sm text-red-400">{reschedulingError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleReschedule}
+                      disabled={!newDate || !newTime}
+                      className="flex-1 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-neutral-900 transition-all hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Confirmar Reagendamento
+                    </button>
+                    <button
+                      onClick={() => { setRescheduling(false); setNewDate(''); setNewTime(''); setReschedulingError('') }}
+                      className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-neutral-400 hover:text-neutral-200 transition-all"
+                    >
+                      <ArrowLeft className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <p className="mb-6 text-center text-xs text-neutral-600">
                 Cancelamentos podem ser feitos até {CANCEL_WINDOW_HOURS}h antes do horário.
               </p>
@@ -247,6 +380,25 @@ export default function ManageBooking() {
                 className="mt-2 inline-flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-5 py-2.5 text-sm font-semibold text-amber-400 hover:bg-amber-500/20 transition-all"
               >
                 Agendar novo horário
+              </a>
+            </div>
+          )}
+
+          {/* REAGENDADO COM SUCESSO */}
+          {pageState === 'rescheduled' && (
+            <div className="flex flex-col items-center gap-4 py-4 text-center">
+              <CheckCircle className="size-12 text-emerald-400" />
+              <div>
+                <h2 className="text-lg font-bold text-neutral-100">Reagendado com sucesso</h2>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Seu agendamento foi remarcado. O barbeiro foi notificado.
+                </p>
+              </div>
+              <a
+                href={bookingUrl}
+                className="mt-2 inline-flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-5 py-2.5 text-sm font-semibold text-amber-400 hover:bg-amber-500/20 transition-all"
+              >
+                Ver mais horários
               </a>
             </div>
           )}
