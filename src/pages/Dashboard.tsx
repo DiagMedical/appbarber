@@ -497,7 +497,7 @@ function Dashboard() {
                         <Icon className="size-5" />
                       </div>
                     </div>
-                    <p className="text-4xl font-bold tracking-tight">
+                    <p className="text-4xl font-bold tracking-tight whitespace-nowrap">
                       {isCurrency ? (
                         <span>{value}</span>
                       ) : (
@@ -684,7 +684,13 @@ function Dashboard() {
             </div>
             <div className="flex items-center gap-2">
               <Select value={selectedBarber} onValueChange={(v) => setSelectedBarber(v ?? '')}>
-                <SelectTrigger className="w-36 border-indigo-500/20 sm:w-44"><SelectValue placeholder="Todos os barbeiros" /></SelectTrigger>
+                <SelectTrigger className="w-36 border-indigo-500/20 sm:w-44">
+                {selectedBarber ? (
+                  <span className="truncate">{barbers.find((b) => b.id === selectedBarber)?.name ?? selectedBarber}</span>
+                ) : (
+                  <SelectValue placeholder="Todos os barbeiros" />
+                )}
+              </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todos os barbeiros</SelectItem>
                   {barbers.map((b) => (
