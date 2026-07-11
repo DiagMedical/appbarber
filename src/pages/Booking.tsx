@@ -3,13 +3,14 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CheckCircle, Sparkles, ChevronLeft, User, Phone, Sun, Moon, Clock, CalendarDays, BadgeCheck, Info, Scissors } from 'lucide-react'
+import { CheckCircle, Sparkles, ChevronLeft, User, Phone, Sun, Moon, Clock, CalendarDays, BadgeCheck, Info, Scissors, CalendarPlus } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 import { sendText, checkWhatsAppStatus } from '@/lib/evolution'
 import { getAvailableSlots } from '@/lib/availability'
 import { getUTC3DateKey } from '@/lib/timezone'
 import { useAuth } from '@/providers/AuthProvider'
 import type { Barber, Service } from '@/types/database'
+import { generateICS, downloadICS, type AppointmentICSData } from '@/lib/calendar'
 
 function normalizePhone(value: string) {
   return value.replace(/\D/g, '')
@@ -44,6 +45,7 @@ function Booking() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [step, setStep] = useState(1)
   const [whatsAppOnline, setWhatsAppOnline] = useState<boolean | null>(null)
+  const [icsData, setIcsData] = useState<AppointmentICSData | null>(null)
 
   useEffect(() => {
     if (!shop) return
@@ -143,6 +145,7 @@ function Booking() {
     setError('')
     setStep(1)
     setAvailableSlots([])
+    setIcsData(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -212,6 +215,15 @@ function Booking() {
       else toast.warning('Agendamento criado, mas WhatsApp não configurado')
 
       setSuccess(true)
+      setIcsData({
+        shop: { name: shop.name, address: shop.address ?? undefined },
+        barberName: selectedBarber?.name || '',
+        services: selectedServices.map((s) => s.name),
+        startTime,
+        endTime,
+        totalPrice,
+        clientPhone: cleanPhone,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao agendar')
     } finally {
@@ -254,9 +266,24 @@ function Booking() {
                 <p>{date} às {time}</p>
               </div>
             </div>
-            <Button onClick={reset} className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
-              Novo agendamento
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button onClick={reset} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                Novo agendamento
+              </Button>
+              {icsData && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const ics = generateICS(icsData)
+                    downloadICS(ics, `agendamento-${Date.now()}.ics`)
+                  }}
+                  className="w-full border-indigo-500/30 text-indigo-600 hover:bg-indigo-500/10 dark:text-indigo-400"
+                >
+                  <CalendarPlus className="mr-2 size-4" />
+                  Baixar Calendário (.ics)
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Toaster richColors />

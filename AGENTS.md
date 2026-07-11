@@ -423,6 +423,11 @@ src/
   ```
 - **Build:** ✅ `npm run build` validado (sem erros TypeScript).
 
+### Sessão 29 — Botão .ics na tela de sucesso do /booking (2026-07-12)
+- **Motivo:** O botão "Baixar Calendário (.ics)" existia só no site público (`PublicSite.tsx`); o fluxo interno `/booking` (`Booking.tsx`) tem tela de sucesso igual mas sem a opção. Adicionado para consistência.
+- **`src/pages/Booking.tsx`:** Import de `generateICS`/`downloadICS`/`AppointmentICSData`; estado `icsData`; captura dos dados no `handleSubmit` (após `setSuccess(true)`); botão outline índigo "Baixar Calendário (.ics)" na tela de sucesso (condicional a `icsData`); `reset()` limpa `icsData`. Botões envolvidos em `flex flex-col gap-2` com `w-full`.
+- **Build:** ✅ `npm run build` validado.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
@@ -442,6 +447,7 @@ src/
 - Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público — compatível com Google Calendar, iPhone Calendar e Outlook.
 - `ErrorBoundary` global (`src/components/ErrorBoundary.tsx`) — um erro de runtime numa página não derruba o SPA inteiro.
 - Realtime no Dashboard — atualiza cards, métricas, próximos atendimentos e agenda semanal automaticamente quando um agendamento muda (via Supabase Realtime).
+- Botão "Baixar Calendário (.ics)" agora presente tanto no site público quanto no fluxo interno `/booking`.
 - Multi-serviço no admin (`Booking.tsx`/`Appointments.tsx`), reagendamento (`ManageBooking.tsx`), lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`) — todos já implementados.
 - Build validado (`npm run build`) em todas as sessões.
 - Commits sincronizados no `origin/main`.
