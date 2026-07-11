@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
-import { CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, Clock3, ArrowRight } from 'lucide-react'
+import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, Clock3, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { sendText } from '@/lib/evolution'
 import { endOfUTC3DayISO, formatDateTime, formatTime, getUTC3DateKey, startOfUTC3DayISO } from '@/lib/timezone'
@@ -49,7 +49,7 @@ function Appointments() {
   const [saving, setSaving] = useState(false)
 
   const [barberId, setBarberId] = useState('')
-  const [serviceId, setServiceId] = useState('')
+  const [serviceIds, setServiceIds] = useState<string[]>([])
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [date, setDate] = useState('')
@@ -57,7 +57,14 @@ function Appointments() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
 
-  const selectedService = services.find((s) => s.id === serviceId)
+  const selectedServices = useMemo(() => services.filter((s) => serviceIds.includes(s.id)), [services, serviceIds])
+  const totalDuration = useMemo(() => selectedServices.reduce((acc, s) => acc + s.duration_minutes, 0), [selectedServices])
+  const totalPrice = useMemo(() => selectedServices.reduce((acc, s) => acc + Number(s.price), 0), [selectedServices])
+  const totalBuffer = useMemo(() => selectedServices.length > 0 ? Math.max(...selectedServices.map((s) => s.buffer_minutes ?? 0)) : 0, [selectedServices])
+
+  function toggleServiceSelection(id: string) {
+    setServiceIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  }
 
   useEffect(() => {
     load()
@@ -66,10 +73,10 @@ function Appointments() {
   useEffect(() => {
     if (shopLoading || !shop) return
 
-    if (barberId && serviceId && date) {
+    if (barberId && serviceIds.length > 0 && date) {
       setTime('')
       setLoadingSlots(true)
-      const dur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
+      const dur = totalDuration + totalBuffer
       getAvailableSlots(barberId, date, dur)
         .then((slots) => {
           setAvailableSlots(slots)
@@ -82,7 +89,7 @@ function Appointments() {
     } else {
       setAvailableSlots([])
     }
-  }, [barberId, serviceId, date, selectedService?.duration_minutes, shop?.id, shopLoading])
+  }, [barberId, serviceIds.join(','), date, totalDuration, totalBuffer, shop?.id, shopLoading])
 
   async function load() {
     try {
@@ -124,13 +131,37 @@ function Appointments() {
         clientMap = new Map((clients ?? []).map((c) => [c.id, c]))
       }
 
+      const aptIds = rawAppointments.map((a) => a.id)
+      let multiSvcMap = new Map<string, string>()
+      if (aptIds.length > 0) {
+        const { data: svcLinks } = await supabase
+          .from('appointment_services')
+          .select('appointment_id, service_id')
+          .in('appointment_id', aptIds)
+        if (svcLinks) {
+          const extraSvcIds = [...new Set(svcLinks.map((l) => l.service_id))]
+          const extraNames = extraSvcIds.length > 0
+            ? new Map((servicesRes.data as Service[]).filter((s) => extraSvcIds.includes(s.id)).map((s) => [s.id, s.name]))
+            : new Map<string, string>()
+          const byApt = new Map<string, string[]>()
+          for (const link of svcLinks) {
+            const list = byApt.get(link.appointment_id) ?? []
+            list.push(extraNames.get(link.service_id) ?? serviceMap.get(link.service_id) ?? '?')
+            byApt.set(link.appointment_id, list)
+          }
+          for (const [aid, names] of byApt) {
+            multiSvcMap.set(aid, names.join(', '))
+          }
+        }
+      }
+
       setAppointments(
         rawAppointments.map((a) => {
           const client = clientMap.get(a.client_id)
           return {
             ...a,
             barberName: barberMap.get(a.barber_id) ?? 'Desconhecido',
-            serviceName: serviceMap.get(a.service_id) ?? 'Desconhecido',
+            serviceName: multiSvcMap.get(a.id) ?? serviceMap.get(a.service_id) ?? 'Desconhecido',
             clientName: client?.name ?? 'Desconhecido',
             clientPhone: client?.phone ?? '',
           }
@@ -149,7 +180,7 @@ function Appointments() {
 
   function resetForm() {
     setBarberId('')
-    setServiceId('')
+    setServiceIds([])
     setClientName('')
     setClientPhone('')
     setDate('')
@@ -172,7 +203,7 @@ function Appointments() {
   }
 
   async function createAppointment() {
-    if (!barberId || !serviceId || !clientName || !clientPhone || !date || !time) {
+    if (!barberId || serviceIds.length === 0 || !clientName || !clientPhone || !date || !time) {
       toast.error('Preencha todos os campos')
       return
     }
@@ -193,8 +224,7 @@ function Appointments() {
         clientId = newClient.id as string
       }
 
-      const slotDur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
-      const stillAvailable = await getAvailableSlots(barberId, date, slotDur)
+      const stillAvailable = await getAvailableSlots(barberId, date, totalDuration + totalBuffer)
       if (!stillAvailable.includes(time)) {
         toast.error('Este horário não está mais disponível. Escolha outro.')
         setSaving(false)
@@ -202,21 +232,30 @@ function Appointments() {
       }
 
       const startTime = new Date(`${date}T${time}:00-03:00`)
-      const endTime = new Date(startTime.getTime() + (selectedService?.duration_minutes ?? 30) * 60000)
+      const endTime = new Date(startTime.getTime() + totalDuration * 60000)
 
-      await supabase.from('appointments').insert({
+      const { data: newApt, error: aptErr } = await supabase.from('appointments').insert({
         shop_id: shop.id,
         barber_id: barberId,
-        service_id: serviceId,
+        service_id: serviceIds[0],
         client_id: clientId,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         status: 'confirmed',
-        price_at_booking: selectedService?.price ?? null,
-      })
+        price_at_booking: totalPrice,
+      }).select('id').single()
+      if (aptErr) throw aptErr
+      if (!newApt) throw new Error('Erro ao criar agendamento')
+
+      if (serviceIds.length > 1) {
+        const svcRows = serviceIds.slice(1).map((sid) => ({ appointment_id: newApt.id, service_id: sid }))
+        const { error: svcErr } = await supabase.from('appointment_services').insert(svcRows)
+        if (svcErr) console.error('Erro ao salvar serviços adicionais:', svcErr)
+      }
 
       const barber = barbers.find((b) => b.id === barberId)
-      const msg = `🪒 *AppBarber*\n\nOlá ${clientName}, seu agendamento foi confirmado!\n\n📅 ${date} às ${time}\n💈 ${selectedService?.name}\n✂️ ${barber?.name}`
+      const svcNames = selectedServices.map((s) => s.name).join(' + ')
+      const msg = `🪒 *AppBarber*\n\nOlá ${clientName}, seu agendamento foi confirmado!\n\n📅 ${date} às ${time}\n💈 ${svcNames}\n✂️ ${barber?.name}`
       const sent = await sendText({ number: clientPhone, text: msg, shopId: shop.id })
       if (sent) toast.success('Agendamento criado e WhatsApp enviado!')
       else toast.success('Agendamento criado!')
@@ -304,15 +343,38 @@ function Appointments() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Serviço</label>
-                    <Select value={serviceId} onValueChange={(v) => v && setServiceId(v)}>
-                      <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        {services.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <label className="text-sm font-medium">Serviços (selecione um ou mais)</label>
+                    <div className="grid gap-2 sm:grid-cols-2 max-h-[260px] overflow-y-auto rounded-xl border border-indigo-500/10 p-2">
+                      {services.map((s) => {
+                        const isSel = serviceIds.includes(s.id)
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => toggleServiceSelection(s.id)}
+                            className={`group flex flex-col items-start gap-1 rounded-xl border p-3 text-left text-sm transition-all ${
+                              isSel
+                                ? 'border-indigo-500 bg-indigo-500/10 shadow-sm'
+                                : 'border-indigo-500/10 hover:border-indigo-500/30 hover:bg-indigo-500/5'
+                            }`}
+                          >
+                            <div className="flex w-full items-center justify-between gap-2">
+                              <span className="font-medium">{s.name}</span>
+                              <span className="shrink-0 text-xs font-semibold text-indigo-400">R$ {Number(s.price).toFixed(2)}</span>
+                            </div>
+                            <div className="flex w-full items-center justify-between">
+                              <span className="text-xs text-muted-foreground">{s.duration_minutes} min</span>
+                              {isSel && <Check className="size-4 text-indigo-400" />}
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {selectedServices.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {selectedServices.map((s) => s.name).join(' + ')} — {totalDuration} min · R$ {Number(totalPrice).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Cliente</label>
@@ -326,7 +388,7 @@ function Appointments() {
                     <label className="text-sm font-medium">Data</label>
                     <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
                   </div>
-                  {barberId && serviceId && date && (
+                  {barberId && serviceIds.length > 0 && date && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Horário</label>
                       {loadingSlots ? (
@@ -469,7 +531,7 @@ function Appointments() {
                 </div>
                 <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <Scissors className="size-3.5" /> Atendimento
+                    <Scissors className="size-3.5" /> Serviço(s)
                   </p>
                   <p className="font-medium">{selectedAppointment.barberName}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{selectedAppointment.serviceName}</p>

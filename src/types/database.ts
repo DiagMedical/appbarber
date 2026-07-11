@@ -54,6 +54,12 @@ export interface BarberService {
   service_id: string
 }
 
+export interface AppointmentService {
+  id: string
+  appointment_id: string
+  service_id: string
+}
+
 export interface Client {
   id: string
   shop_id: string
@@ -112,6 +118,7 @@ export interface Database {
       barber_availability: { Row: BarberAvailability; Insert: Omit<BarberAvailability, 'id'>; Update: Partial<Omit<BarberAvailability, 'id'>> }
       services: { Row: Service; Insert: Omit<Service, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Service, 'id'>> }
       barber_services: { Row: BarberService; Insert: Omit<BarberService, 'id'>; Update: Partial<Omit<BarberService, 'id'>> }
+      appointment_services: { Row: AppointmentService; Insert: Omit<AppointmentService, 'id'>; Update: Partial<Omit<AppointmentService, 'id'>> }
       clients: { Row: Client; Insert: Omit<Client, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Client, 'id'>> }
       appointments: { Row: Appointment; Insert: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Appointment, 'id'>> }
       whatsapp_configs: { Row: WhatsAppConfig; Insert: Omit<WhatsAppConfig, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<WhatsAppConfig, 'id'>> }

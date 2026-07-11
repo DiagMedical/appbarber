@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Scissors, CheckCircle, Sparkles, ChevronLeft, User, Phone, Sun, Moon, Clock, CalendarDays, BadgeCheck, Info } from 'lucide-react'
+import { CheckCircle, Sparkles, ChevronLeft, User, Phone, Sun, Moon, Clock, CalendarDays, BadgeCheck, Info, Scissors } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 import { sendText } from '@/lib/evolution'
 import { getAvailableSlots } from '@/lib/availability'
@@ -31,7 +31,7 @@ function Booking() {
   const [barbers, setBarbers] = useState<Barber[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [barberId, setBarberId] = useState('')
-  const [serviceId, setServiceId] = useState('')
+  const [serviceIds, setServiceIds] = useState<string[]>([])
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [name, setName] = useState('')
@@ -71,29 +71,36 @@ function Booking() {
     load()
   }, [shop?.id, shopLoading])
 
-  const selectedService = services.find((s) => s.id === serviceId)
   const selectedBarber = barbers.find((b) => b.id === barberId)
+  const selectedServices = useMemo(() => services.filter((s) => serviceIds.includes(s.id)), [services, serviceIds])
+  const totalDuration = useMemo(() => selectedServices.reduce((acc, s) => acc + s.duration_minutes, 0), [selectedServices])
+  const totalPrice = useMemo(() => selectedServices.reduce((acc, s) => acc + Number(s.price), 0), [selectedServices])
+  const totalBuffer = useMemo(() => selectedServices.length > 0 ? Math.max(...selectedServices.map((s) => s.buffer_minutes ?? 0)) : 0, [selectedServices])
+
+  const svcSummary = selectedServices.map((s) => s.name).join(' + ')
 
   const bookingSummary = useMemo(() => {
-    const duration = selectedService?.duration_minutes ?? 0
     return {
       barberName: selectedBarber?.name ?? 'Barbeiro não selecionado',
-      serviceName: selectedService?.name ?? 'Serviço não selecionado',
-      duration,
+      serviceName: svcSummary || 'Serviço não selecionado',
+      duration: totalDuration,
       timeLabel: time || 'Horário pendente',
       dateLabel: date || 'Data pendente',
       phoneLabel: normalizePhone(phone) ? formatPhoneInput(phone) : 'WhatsApp pendente',
     }
-  }, [selectedBarber?.name, selectedService?.name, selectedService?.duration_minutes, date, time, phone])
+  }, [selectedBarber?.name, svcSummary, totalDuration, date, time, phone])
+
+  function toggleServiceSelection(id: string) {
+    setServiceIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+  }
 
   useEffect(() => {
     if (shopLoading || !shop) return
 
-    if (barberId && serviceId && date) {
+    if (barberId && serviceIds.length > 0 && date) {
       setTime('')
       setLoadingSlots(true)
-      const dur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
-      getAvailableSlots(barberId, date, dur).then((slots) => {
+      getAvailableSlots(barberId, date, totalDuration + totalBuffer).then((slots) => {
         setAvailableSlots(slots)
         setLoadingSlots(false)
       }).catch(() => {
@@ -103,11 +110,11 @@ function Booking() {
     } else {
       setAvailableSlots([])
     }
-  }, [barberId, serviceId, date, selectedService?.duration_minutes, shop?.id, shopLoading])
+  }, [barberId, serviceIds.join(','), date, totalDuration, totalBuffer, shop?.id, shopLoading])
 
   function canProceed(stepNum: number) {
     switch (stepNum) {
-      case 1: return !!barberId && !!serviceId
+      case 1: return !!barberId && serviceIds.length > 0
       case 2: return !!date && !!time
       case 3: return !!name.trim() && normalizePhone(phone).length >= 10
       default: return false
@@ -121,7 +128,7 @@ function Booking() {
 
   function reset() {
     setBarberId('')
-    setServiceId('')
+    setServiceIds([])
     setDate('')
     setTime('')
     setName('')
@@ -135,7 +142,7 @@ function Booking() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const cleanPhone = normalizePhone(phone)
-    if (!barberId || !serviceId || !date || !time || !name.trim() || cleanPhone.length < 10) return
+    if (!barberId || serviceIds.length === 0 || !date || !time || !name.trim() || cleanPhone.length < 10) return
     if (!shop) {
       setError('Barbearia ainda não carregada')
       return
@@ -144,8 +151,7 @@ function Booking() {
     setError('')
 
     try {
-      const slotDur = (selectedService?.duration_minutes ?? 30) + (selectedService?.buffer_minutes ?? 0)
-      const stillAvailable = await getAvailableSlots(barberId, date, slotDur)
+      const stillAvailable = await getAvailableSlots(barberId, date, totalDuration + totalBuffer)
       if (!stillAvailable.includes(time)) {
         setError('Este horário não está mais disponível. Escolha outro.')
         setSaving(false)
@@ -163,26 +169,35 @@ function Booking() {
       }
 
       const startTime = buildISO(date, time)
-      const endTime = new Date(startTime.getTime() + (selectedService?.duration_minutes ?? 30) * 60000)
+      const endTime = new Date(startTime.getTime() + totalDuration * 60000)
 
-      await supabase.from('appointments').insert({
+      const { data: newApt, error: aptErr } = await supabase.from('appointments').insert({
         shop_id: shop.id,
         barber_id: barberId,
-        service_id: serviceId,
+        service_id: serviceIds[0],
         client_id: clientId,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         status: 'pending',
-        price_at_booking: selectedService?.price ?? null,
-      })
+        price_at_booking: totalPrice,
+      }).select('id').single()
+      if (aptErr) throw aptErr
+      if (!newApt) throw new Error('Erro ao criar agendamento')
 
+      if (serviceIds.length > 1) {
+        const svcRows = serviceIds.slice(1).map((sid) => ({ appointment_id: newApt.id, service_id: sid }))
+        const { error: svcErr } = await supabase.from('appointment_services').insert(svcRows)
+        if (svcErr) console.error('Erro ao salvar serviços adicionais:', svcErr)
+      }
+
+      const svcNames = selectedServices.map((s) => s.name).join(' + ')
       const msg = [
         `🪒 *AppBarber*`,
         ``,
         `Olá ${name.trim()}, seu agendamento foi confirmado!`,
         ``,
         `📅 ${date} às ${time}`,
-        `💈 ${selectedService?.name ?? 'Serviço'}`,
+        `💈 ${svcNames}`,
         `✂️ ${selectedBarber?.name ?? 'Barbeiro'}`,
       ].join('\n')
 
@@ -229,7 +244,7 @@ function Booking() {
               </p>
               <div className="space-y-1 text-muted-foreground">
                 <p>{selectedBarber?.name}</p>
-                <p>{selectedService?.name}</p>
+                <p>{selectedServices.map((s) => s.name).join(' + ') || 'Serviço'}</p>
                 <p>{date} às {time}</p>
               </div>
             </div>
@@ -301,20 +316,38 @@ function Booking() {
                     </div>
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-sm font-medium">
-                        <Sparkles className="size-4 text-indigo-500" /> Serviço
+                        <Sparkles className="size-4 text-indigo-500" /> Serviços (selecione um ou mais)
                       </label>
-                      <Select value={serviceId} onValueChange={(v) => v && setServiceId(v)}>
-                        <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500"><SelectValue placeholder="Selecione o serviço" /></SelectTrigger>
-                        <SelectContent>
-                          {services.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.name} — R$ {Number(s.price).toFixed(2)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedService && (
-                        <p className="text-xs text-muted-foreground">⏱ {selectedService.duration_minutes} min</p>
+                      <div className="grid gap-2 sm:grid-cols-2 max-h-[260px] overflow-y-auto rounded-xl border border-indigo-500/10 p-2">
+                        {services.map((s) => {
+                          const isSel = serviceIds.includes(s.id)
+                          return (
+                            <button
+                              key={s.id}
+                              type="button"
+                              onClick={() => toggleServiceSelection(s.id)}
+                              className={`group flex flex-col items-start gap-1 rounded-xl border p-3 text-left text-sm transition-all ${
+                                isSel
+                                  ? 'border-indigo-500 bg-indigo-500/10 shadow-sm'
+                                  : 'border-indigo-500/10 hover:border-indigo-500/30 hover:bg-indigo-500/5'
+                              }`}
+                            >
+                              <div className="flex w-full items-center justify-between gap-2">
+                                <span className="font-medium">{s.name}</span>
+                                <span className="shrink-0 text-xs font-semibold text-indigo-400">R$ {Number(s.price).toFixed(2)}</span>
+                              </div>
+                              <div className="flex w-full items-center justify-between">
+                                <span className="text-xs text-muted-foreground">{s.duration_minutes} min</span>
+                                {isSel && <CheckCircle className="size-3.5 text-indigo-400" />}
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      {selectedServices.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {svcSummary} — {totalDuration} min · R$ {Number(totalPrice).toFixed(2)}
+                        </p>
                       )}
                     </div>
                     <Button type="button" onClick={nextStep} disabled={!canProceed(1)} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">

@@ -264,6 +264,31 @@ function Dashboard() {
         const revenueRows = (monthRevenueRes.data ?? []) as Array<{ price_at_booking: number | null }>
         const monthRevenue = revenueRows.reduce((sum, r) => sum + (r.price_at_booking ?? 0), 0)
 
+        // Multi-serviço para upcoming
+        const rawRelevantIds = rawRelevant.map((a) => a.id)
+        let multiSvcUpcoming = new Map<string, string>()
+        if (rawRelevantIds.length > 0) {
+          const { data: svcLinks } = await supabase
+            .from('appointment_services')
+            .select('appointment_id, service_id')
+            .in('appointment_id', rawRelevantIds)
+          if (svcLinks) {
+            const extraSvcIds = [...new Set(svcLinks.map((l) => l.service_id))]
+            const extraNames = extraSvcIds.length > 0
+              ? new Map((servicesRes.data ?? []).filter((s: { id: string; name: string }) => extraSvcIds.includes(s.id)).map((s: { id: string; name: string }) => [s.id, s.name]))
+              : new Map<string, string>()
+            const byApt = new Map<string, string[]>()
+            for (const link of svcLinks) {
+              const list = byApt.get(link.appointment_id) ?? []
+              list.push(extraNames.get(link.service_id) ?? serviceMap.get(link.service_id) ?? '?')
+              byApt.set(link.appointment_id, list)
+            }
+            for (const [aid, names] of byApt) {
+              multiSvcUpcoming.set(aid, names.join(', '))
+            }
+          }
+        }
+
         setCounts({
           barbers: barbersCountRes.count ?? 0,
           services: servicesCountRes.count ?? 0,
@@ -291,7 +316,7 @@ function Dashboard() {
             id: a.id,
             barber_name: barberMap.get(a.barber_id) ?? 'Desconhecido',
             client_name: clientMap.get(a.client_id) ?? 'Desconhecido',
-            service_name: serviceMap.get(a.service_id) ?? 'Desconhecido',
+            service_name: multiSvcUpcoming.get(a.id) ?? serviceMap.get(a.service_id) ?? 'Desconhecido',
             start_time: a.start_time,
             status: a.status,
           })),
@@ -370,12 +395,37 @@ function Dashboard() {
       const cMap = new Map((clientsR.data ?? []).map((c: { id: string; name: string }) => [c.id, c.name]))
       const sMap = new Map((servicesR.data ?? []).map((s: { id: string; name: string }) => [s.id, s.name]))
 
+      // Multi-serviço: buscar appointment_services
+      const aptIds = raw.map((a) => a.id)
+      let multiSvcMap = new Map<string, string>()
+      if (aptIds.length > 0) {
+        const { data: svcLinks } = await supabase
+          .from('appointment_services')
+          .select('appointment_id, service_id')
+          .in('appointment_id', aptIds)
+        if (svcLinks) {
+          const extraSvcIds = [...new Set(svcLinks.map((l) => l.service_id))]
+          const extraNames = extraSvcIds.length > 0
+            ? new Map((servicesR.data ?? []).filter((s: { id: string; name: string }) => extraSvcIds.includes(s.id)).map((s: { id: string; name: string }) => [s.id, s.name]))
+            : new Map<string, string>()
+          const byApt = new Map<string, string[]>()
+          for (const link of svcLinks) {
+            const list = byApt.get(link.appointment_id) ?? []
+            list.push(extraNames.get(link.service_id) ?? sMap.get(link.service_id) ?? '?')
+            byApt.set(link.appointment_id, list)
+          }
+          for (const [aid, names] of byApt) {
+            multiSvcMap.set(aid, names.join(', '))
+          }
+        }
+      }
+
       setSchedule(raw.map((a) => ({
         id: a.id,
         barber_id: a.barber_id,
         barber_name: bMap.get(a.barber_id) ?? '?',
         client_name: cMap.get(a.client_id) ?? '?',
-        service_name: sMap.get(a.service_id) ?? '?',
+        service_name: multiSvcMap.get(a.id) ?? sMap.get(a.service_id) ?? '?',
         start_time: a.start_time,
         end_time: a.end_time,
         status: a.status,

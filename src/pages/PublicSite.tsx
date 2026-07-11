@@ -370,15 +370,25 @@ function PublicSite() {
       const serviceNames = selectedServices.map((s) => s.name).join(', ')
       const notes = `Serviços: ${serviceNames}`
 
-      const { error: appointmentError } = await supabase.from('appointments').insert({
+      const { data: newApt, error: appointmentError } = await supabase.from('appointments').insert({
         shop_id: shop.id, barber_id: barberId, service_id: serviceIds[0],
         client_id: clientId, start_time: startTime.toISOString(),
         end_time: endTime.toISOString(), status: 'pending',
         price_at_booking: totalPrice,
         notes,
-      })
+      }).select('id').single()
       if (appointmentError) throw appointmentError
-      
+      if (!newApt) throw new Error('Erro ao criar agendamento')
+
+      if (serviceIds.length > 1) {
+        const serviceRows = serviceIds.slice(1).map((sid) => ({
+          appointment_id: newApt.id,
+          service_id: sid,
+        }))
+        const { error: svcErr } = await supabase.from('appointment_services').insert(serviceRows)
+        if (svcErr) console.error('Erro ao salvar serviços adicionais:', svcErr)
+      }
+
       const readableDate = new Date(`${date}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
       const message = [
         '💈 *' + shop.name + '*',

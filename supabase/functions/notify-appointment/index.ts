@@ -37,17 +37,28 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const [clientRes, barberRes, serviceRes, shopRes] = await Promise.all([
+    const [clientRes, barberRes, serviceRes, svcLinksRes, shopRes] = await Promise.all([
       supabase.from('clients').select('name, phone').eq('id', record.client_id).single(),
       supabase.from('barbers').select('name, phone').eq('id', record.barber_id).single(),
       supabase.from('services').select('name').eq('id', record.service_id).single(),
+      supabase.from('appointment_services').select('service_id').eq('appointment_id', record.id),
       supabase.from('shops').select('name, public_slug').eq('id', record.shop_id).single(),
     ])
 
     const client = clientRes.data as { name: string; phone: string } | null
     const barber = barberRes.data as { name: string; phone: string | null } | null
-    const service = serviceRes.data as { name: string } | null
+    const primaryService = serviceRes.data as { name: string } | null
     const shop = shopRes.data as { name: string; public_slug: string | null } | null
+
+    // Montar lista de nomes de serviços
+    let svcNames = primaryService?.name ?? 'Serviço'
+    if (svcLinksRes.data && svcLinksRes.data.length > 0) {
+      const extraIds = svcLinksRes.data.map((l: { service_id: string }) => l.service_id)
+      const { data: extraSvcs } = await supabase.from('services').select('name').in('id', extraIds)
+      if (extraSvcs && extraSvcs.length > 0) {
+        svcNames = extraSvcs.map((s: { name: string }) => s.name).join(' + ')
+      }
+    }
 
     if (!client) {
       return new Response('Client not found', { status: 404 })
@@ -77,7 +88,7 @@ serve(async (req) => {
         `Olá *${client.name}*, recebemos seu pedido de agendamento!`,
         ``,
         `📅 *${date}* às *${time}*`,
-        `💈 ${service?.name ?? 'Serviço'}`,
+        `💈 ${svcNames}`,
         `✂️ ${barber?.name ?? 'Barbeiro'}`,
         ``,
         `⏳ Seu horário será confirmado em breve. Fique de olho!${cancelLine}`,
@@ -94,7 +105,7 @@ serve(async (req) => {
         `✅ Olá *${client.name}*, seu agendamento foi *CONFIRMADO*!`,
         ``,
         `📅 *${date}* às *${time}*`,
-        `💈 ${service?.name ?? 'Serviço'}`,
+        `💈 ${svcNames}`,
         `✂️ ${barber?.name ?? 'Barbeiro'}`,
         ``,
         `Te esperamos lá! 💪${cancelLine}`,
@@ -158,7 +169,7 @@ serve(async (req) => {
       const barberMsg = [
         `📅 *Novo agendamento!*`,
         ``,
-        `O cliente *${client.name}* agendou *${service?.name ?? 'Serviço'}* para dia *${date}* às *${time}*.`,
+        `O cliente *${client.name}* agendou *${svcNames}* para dia *${date}* às *${time}*.`,
         ``,
         `Acesse o painel para confirmar.`,
       ].join('\n')

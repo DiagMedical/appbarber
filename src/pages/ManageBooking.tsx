@@ -58,12 +58,25 @@ export default function ManageBooking() {
         return
       }
 
+      let serviceName = (data.services as unknown as { name: string } | null)?.name ?? 'Serviço'
+      const { data: svcLinks } = await supabase
+        .from('appointment_services')
+        .select('service_id')
+        .eq('appointment_id', data.id)
+      if (svcLinks && svcLinks.length > 0) {
+        const extraIds = svcLinks.map((l) => l.service_id)
+        const { data: extraSvcs } = await supabase.from('services').select('name').in('id', extraIds)
+        if (extraSvcs && extraSvcs.length > 0) {
+          serviceName = extraSvcs.map((s) => s.name).join(' + ')
+        }
+      }
+
       const info: AppointmentInfo = {
         id: data.id,
         start_time: data.start_time,
         status: data.status,
         barber_name: (data.barbers as unknown as { name: string } | null)?.name ?? 'Barbeiro',
-        service_name: (data.services as unknown as { name: string } | null)?.name ?? 'Serviço',
+        service_name: serviceName,
         client_name: (data.clients as unknown as { name: string } | null)?.name ?? 'Cliente',
         shop_name: (data.shops as unknown as { name: string } | null)?.name ?? 'Barbearia',
       }
