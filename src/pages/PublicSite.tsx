@@ -701,15 +701,8 @@ function PublicSite() {
                   {whatsAppOnline === false && shop?.phone && (
                     <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-amber-300">Agendamento online temporariamente indisponível</p>
-                        <a
-                          href={`https://wa.me/${normalizePhone(shop.phone)}?text=${encodeURIComponent('Olá! Gostaria de agendar um horário.')}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="shrink-0 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-bold text-neutral-950 hover:bg-amber-600 transition"
-                        >
-                          Agendar via WhatsApp
-                        </a>
+                        <p className="text-sm text-amber-300">WhatsApp indisponível no momento, mas você ainda pode agendar aqui.</p>
+
                       </div>
                     </div>
                   )}
