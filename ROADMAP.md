@@ -168,7 +168,7 @@ Todos os 8 bugs corrigidos na Sessão 16. Build validado após cada correção.
 - [ ] Notificações no browser (Service Worker) quando cliente agenda
 - [ ] Botão "duplicar horários da semana" nos barbeiros
 - [ ] Exportar relatórios pra CSV/PDF
-- [ ] Upload de logo integrado no `ShopSettings.tsx`
+- [x] Upload de logo integrado no `ShopSettings.tsx` ✅ _2026-07-10_
 
 ### Técnico
 - [ ] Lazy loading com `React.lazy()` + `Suspense` (chunk de 938KB)

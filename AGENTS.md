@@ -300,13 +300,13 @@ src/
 - **`src/pages/WhatsAppSettings.tsx`**: Botão "Copiar link do site" substituído por "Abrir site público" (`window.open`), removido estado `copiedLink` e ícone `Copy` não utilizado
 - **build:** `npm run build` validado
 
-### Sessão 18 — Logo da Barbearia no Site Público (2026-07-10)
-- **Contexto:** Usuário queria substituir o ícone de tesoura (círculo) no PublicSite pelo logo real da barbearia
-- **Diagnóstico:** O código `PublicSite.tsx:545-551` já tinha suporte condicional (`shop.logo_url ? <img> : <Scissors>`), mas `logo_url` da Studio Lima estava `NULL`
-- **ShopSettings.tsx:** Já possuía upload de logo completo (handleLogoUpload + preview + handleLogoRemove + form field `logo_url`) — criado na Sessão 10 e integrado ao form na Sessão 11
-- **Nenhuma alteração de código necessária** — funcionalidade já existia, só precisava de upload via `/settings`
-- **Bucket `gallery` verificado:** existe e está funcional
-- **Git:** `15676a0` (sem alterações de código, apenas atualização deste doc)
+### Sessão 18 — Upload de Logo + Auto-save Hero/Galeria (2026-07-10)
+- **Problema 1: owner_user_id errado.** Studio Lima tinha `owner_user_id` = `d1538bee...` mas o auth UUID de welloliver@gmail.com é `e7cdc124...`. `resolveActiveShop()` retornava `null` para o admin, e o guarda em `ShopSettings.tsx:45-47` redirecionava pro `/admin` sem mostrar a página. **Corrigido via SQL:** `UPDATE shops SET owner_user_id = 'e7cdc124-...'`
+- **Problema 2: handleLogoUpload sem try/catch.** `uploadLogoPhoto()` faz `throw error` mas `handleLogoUpload` não tratava exceções — erros silenciosos. **Corrigido:** adicionado try/catch + `ensureGalleryBucket()` + auto-save no banco imediatamente (remove fluxo de 2 etapas)
+- **Problema 3: Upload de hero_photo e gallery_photos só atualizava estado local.** Usuário precisava clicar "Salvar configurações do site" separadamente. Se esquecesse, a foto sumia. **Corrigido:** upload de hero e galeria agora fazem auto-save no banco + delete também persiste a remoção
+- **Arquivos alterados:** `ShopSettings.tsx`, `WhatsAppSettings.tsx`
+- **SQL executado:** `UPDATE shops SET owner_user_id` corrigindo vínculo
+- **build:** `npm run build` validado
 
 ### Sessão 15 — Correção Upload de Imagens + Botão Salvar Horários (2026-07-10)
 - **Problema 1:** Upload de fotos (hero/galeria) não funcionava por 3 causas:

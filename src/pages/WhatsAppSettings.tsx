@@ -460,12 +460,18 @@ function WhatsAppSettings() {
                         await ensureGalleryBucket()
                         try {
                           const url = await uploadHeroPhoto(targetShopId, file)
-                          if (url) {
-                            setSiteHeroPhoto(url)
-                            toast.success('Hero atualizado!')
-                          } else {
+                          if (!url) {
                             toast.error('Erro ao fazer upload (upload retornou vazio).')
+                            return
                           }
+                          setSiteHeroPhoto(url)
+                          const { error } = await supabase
+                            .from('shops')
+                            .update({ hero_photo: url.trim() || null })
+                            .eq('id', targetShopId)
+                            .select('id')
+                          if (error) throw error
+                          toast.success('Hero atualizado e salvo!')
                         } catch (err) {
                           const msg = err instanceof Error ? err.message : String(err)
                           toast.error('Erro no upload: ' + msg)
@@ -495,12 +501,23 @@ function WhatsAppSettings() {
                               const url = await uploadGalleryPhoto(targetShopId, file)
                               if (url) urls.push(url)
                             }
-                            if (urls.length) {
-                              setSiteGalleryPhotos([...siteGalleryPhotos, ...urls])
-                              toast.success(`${urls.length} foto(s) adicionada(s)!`)
-                            } else {
+                            if (!urls.length) {
                               toast.error('Erro ao fazer upload (upload retornou vazio).')
+                              return
                             }
+                            const updatedPhotos = [...siteGalleryPhotos, ...urls]
+                            setSiteGalleryPhotos(updatedPhotos)
+                            const { error } = await supabase
+                              .from('shops')
+                              .update({
+                                gallery_photos: updatedPhotos.filter((u) => u.trim()).length > 0
+                                  ? updatedPhotos.filter((u) => u.trim())
+                                  : null,
+                              })
+                              .eq('id', targetShopId)
+                              .select('id')
+                            if (error) throw error
+                            toast.success(`${urls.length} foto(s) adicionada(s) e salva(s)!`)
                           } catch (err) {
                             const msg = err instanceof Error ? err.message : String(err)
                             toast.error('Erro no upload: ' + msg)
@@ -522,10 +539,22 @@ function WhatsAppSettings() {
                             size="icon"
                             className="absolute right-1 top-1 size-7 bg-black/50 text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/70"
                             onClick={async () => {
+                              if (!targetShopId) return
                               if (url.startsWith(supabase.storage.from('gallery').getPublicUrl('').data?.publicUrl ?? '')) {
                                 await deletePhoto(url)
                               }
-                              setSiteGalleryPhotos(siteGalleryPhotos.filter((_, i) => i !== idx))
+                              const updatedPhotos = siteGalleryPhotos.filter((_, i) => i !== idx)
+                              setSiteGalleryPhotos(updatedPhotos)
+                              const { error } = await supabase
+                                .from('shops')
+                                .update({
+                                  gallery_photos: updatedPhotos.filter((u) => u.trim()).length > 0
+                                    ? updatedPhotos.filter((u) => u.trim())
+                                    : null,
+                                })
+                                .eq('id', targetShopId)
+                                .select('id')
+                              if (error) toast.error('Erro ao salvar após remover foto')
                             }}
                           >
                             <Trash2 className="size-3.5" />

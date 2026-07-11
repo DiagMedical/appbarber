@@ -20,7 +20,7 @@ import { Settings, Save, Loader2, Upload, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { Navigate } from 'react-router-dom'
-import { uploadLogoPhoto, deletePhoto } from '@/lib/storage'
+import { ensureGalleryBucket, uploadLogoPhoto, deletePhoto } from '@/lib/storage'
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
 
@@ -95,12 +95,24 @@ function ShopSettings() {
 
   async function handleLogoUpload(file: File) {
     if (!shop) return
-    const url = await uploadLogoPhoto(shop.id, file)
-    if (url) {
+    try {
+      await ensureGalleryBucket()
+      const url = await uploadLogoPhoto(shop.id, file)
+      if (!url) {
+        toast.error('Upload retornou URL vazia.')
+        return
+      }
+      const { error } = await supabase
+        .from('shops')
+        .update({ logo_url: url })
+        .eq('id', shop.id)
+      if (error) throw error
       setValue('logo_url', url, { shouldValidate: true })
-      toast.success('Logo atualizado!')
-    } else {
-      toast.error('Erro ao fazer upload. Verifique o bucket "gallery" no Supabase.')
+      toast.success('Logo atualizado e salvo!')
+      await refreshShop()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      toast.error('Erro no upload: ' + msg)
     }
   }
 
