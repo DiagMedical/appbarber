@@ -540,7 +540,7 @@ function PublicSite() {
           <div className="animate-fade-in flex flex-col items-center gap-6">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-500 border border-amber-500/25">
               <Sparkles className="size-3" />
-              Barbearia Exclusiva
+              Barbearia Premium
             </span>
             
             {shop.logo_url ? (
@@ -1180,7 +1180,27 @@ function PublicSite() {
             {shop.address || shop.phone || instagramLink ? (
               <div className="rounded-2xl border border-white/[0.05] bg-neutral-900/30 p-6 backdrop-blur-md space-y-6">
                 {shop.address ? (
-                  <InfoBlock icon={<MapPin className="size-5 text-amber-500" />} label="Endereço Completo" value={shop.address} />
+                  <>
+                    <InfoBlock icon={<MapPin className="size-5 text-amber-500" />} label="Endereço Completo" value={shop.address} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
+                        onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
+                      >
+                        <MapPin className="mr-2 size-4 text-amber-500" />
+                        Maps
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
+                        onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
+                      >
+                        <MapPin className="mr-2 size-4 text-amber-500" />
+                        Waze
+                      </Button>
+                    </div>
+                  </>
                 ) : null}
                 {shop.phone ? (
                   <InfoBlock icon={<Phone className="size-5 text-amber-500" />} label="WhatsApp de Contato" value={formatPhoneInput(shop.phone)} />
@@ -1189,26 +1209,6 @@ function PublicSite() {
                   <InfoBlockWithLink icon={<AtSign className="size-5 text-amber-500" />} label="Instagram Oficial" href={instagramLink}>
                     @{shop.instagram?.replace(/^@/, '')}
                   </InfoBlockWithLink>
-                ) : null}
-                {shop.address ? (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
-                      onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
-                    >
-                      <MapPin className="mr-2 size-4 text-amber-500" />
-                      Maps
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-white/[0.08] text-white hover:bg-white/5 rounded-xl"
-                      onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(shop.address ?? '')}`, '_blank')}
-                    >
-                      <MapPin className="mr-2 size-4 text-amber-500" />
-                      Waze
-                    </Button>
-                  </div>
                 ) : null}
               </div>
             ) : null}
