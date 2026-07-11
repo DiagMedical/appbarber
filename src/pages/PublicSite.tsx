@@ -459,7 +459,7 @@ function PublicSite() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center relative overflow-x-hidden">
         {/* Glows */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-amber-500/5 blur-[120px]" />
@@ -501,20 +501,20 @@ function PublicSite() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center pt-2">
-                <Button onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all px-6">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-2">
+                <Button onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="w-full bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all px-6">
                   Novo agendamento
                 </Button>
-                <Button variant="outline" onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="border-white/[0.12] text-white hover:bg-white/5">
+                <Button variant="outline" onClick={() => { resetForm(); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="w-full border-white/[0.12] text-white hover:bg-white/5">
                   Voltar ao início
                 </Button>
                 {whatsappLink ? (
-                  <Button variant="outline" className="border-white/[0.12] text-white hover:bg-white/5" onClick={() => window.open(whatsappLink, '_blank')}>
+                  <Button variant="outline" className="w-full border-white/[0.12] text-white hover:bg-white/5" onClick={() => window.open(whatsappLink, '_blank')}>
                     Falar com a Barbearia
                   </Button>
                 ) : null}
                 {icsData && (
-                  <Button variant="outline" className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10" onClick={() => {
+                  <Button variant="outline" className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10" onClick={() => {
                     const ics = generateICS(icsData)
                     downloadICS(ics, `agendamento-${Date.now()}.ics`)
                   }}>
