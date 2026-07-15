@@ -16,8 +16,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Pagination } from '@/components/Pagination'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
+import { usePagination } from '@/hooks/usePagination'
 import { Plus, Pencil, Trash2, Phone, User, Search, ArrowDownAZ, Clock3, Mail, StickyNote, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/timezone'
@@ -76,6 +78,8 @@ function Clients() {
       return a.name.localeCompare(b.name, 'pt-BR')
     })
   }, [clients, query, sortBy])
+
+  const { page, setPage, totalPages, pageItems: pageClients } = usePagination(visibleClients, 20)
 
   async function load() {
     if (shopLoading) return
@@ -299,8 +303,9 @@ function Clients() {
             <p className="text-sm">{query ? 'Tente outro termo de busca' : 'Clique em "Novo Cliente" para começar'}</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleClients.map((client, i) => (
+          <div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pageClients.map((client, i) => (
               <Card key={client.id} className="animate-fade-in border-indigo-500/10 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5" style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -346,6 +351,8 @@ function Clients() {
                 </CardContent>
               </Card>
             ))}
+            </div>
+            <Pagination page={page} totalPages={totalPages} totalItems={visibleClients.length} onPageChange={setPage} />
           </div>
         )}
       </div>

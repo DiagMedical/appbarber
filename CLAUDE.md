@@ -3,7 +3,7 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-## Current State (Sessão 32 — Confirmação ao sair com dados não salvos — 2026-07-15)
+## Current State (Sessão 33 — Paginação + SETUP/CHANGELOG — 2026-07-15)
 
 All code fully written, validated with `npm run build`.
 
@@ -12,6 +12,16 @@ All code fully written, validated with `npm run build`.
 - **Hook criado `src/hooks/useUnsavedChanges.ts`**: combina `useBlocker` (React Router v7) para bloquear navegação interna + `beforeunload` para bloquear fechar/recarregar aba. Exibe `confirm()` perguntando se deseja realmente sair.
 - **Diálogos (Barbeiros/Serviços/Clientes)**: interceptado `onOpenChange` — se `form.formState.isDirty` estiver true, exibe confirmação antes de fechar.
 - **ShopSettings** (formulário inline): hook `useUnsavedChanges` ativado com `isDirty`. Após salvar, `form.reset(values)` é chamado para limpar o estado sujo.
+- **Build**: ✅ `npm run build` validado.
+
+### Completed in Session 33 — Paginação + Documentação (2026-07-15)
+- **Hook `src/hooks/usePagination.ts`**: hook genérico que recebe array + pageSize, retorna `{ page, setPage, totalPages, pageItems, totalItems }`
+- **Componente `src/components/Pagination.tsx`**: navegação com números, ellipsis, botões Anterior/Próximo, contagem de registros
+- **`src/pages/Clients.tsx`**: paginação aplicada (20 por página)
+- **`src/pages/Appointments.tsx`**: paginação aplicada (20 por página)
+- **`SETUP.md`**: documentação completa de setup local (pré-requisitos, migrations, edge functions, VAPID, Vercel)
+- **`CHANGELOG.md`**: changelog resumido de todas as sessões (Sessão 1 até Sessão 33)
+- **ROADMAP limpo**: todos os itens concluídos ou removidos
 - **Build**: ✅ `npm run build` validado.
 
 ### Documentação atualizada (2026-07-14)
@@ -181,20 +191,12 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 **✅ Concluído (Sessão 32):**
 - ~~Confirmação ao sair de formulários com dados não salvos~~ → ✅ Hook `useUnsavedChanges` implementado e aplicado em Barbeiros, Serviços, Clientes e Configurações
 
+**✅ Concluído (Sessão 33 — 2026-07-15):**
+- ~~Paginação em listas longas~~ → ✅ Hook `usePagination` + componente `Pagination` aplicado em Clientes e Agendamentos
+- ~~SETUP.md + CHANGELOG.md~~ → ✅ Documentação de setup local e changelog criados
+
 **❌ Pendentes reais:**
-
-**Admin:**
-- Dashboard global do admin (visão de todas as lojas + métricas consolidadas)
-- Botão "duplicar horários da semana" nos barbeiros (copiar configuração de um dia pra outro)
-- Exportar relatórios pra CSV/PDF
-
-**Técnico:**
-- TanStack React Query para cache e refetch automático
-- Testes automatizados (vitest + playwright)
-
-**Qualidade de Vida:**
-- Atalhos de teclado (ex: `N` pra novo agendamento)
-- Paginação em listas longas (clientes, agendamentos)
+- Nenhum — roadmap concluído! 🎉
 
 ---
 

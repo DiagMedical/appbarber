@@ -40,50 +40,24 @@
 
 ## 📋 Pendências (ordenadas por prioridade)
 
-### 1. 🟢 Admin — Duplicar Horários da Semana
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/pages/Barbers.tsx` | Botão "Copiar horários" que duplica os horários de um dia para os outros dias da semana |
-
-### 2. 🟢 Admin — Dashboard Global
-
-| Arquivo | O que fazer |
-|---|---|
-| `src/pages/AdminPage.tsx` | Adicionar métricas consolidadas de todas as lojas (total agendamentos, faturamento, clientes ativos) |
-
-### 3. 🟢 Admin — Exportar Relatórios CSV/PDF
+### 1. 🟢 Infra — SETUP.md + Changelog (✅ Concluído)
 
 | Item | O que fazer |
 |---|---|
-| `src/pages/Reports.tsx` | Adicionar botão de exportação |
+| ~~SETUP.md~~ | ✅ Documentar setup local: bucket gallery, VAPID keys, migrations, edge functions — Criado |
+| ~~CHANGELOG.md~~ | ✅ Criado com resumo de todas as sessões |
 
-### 4. 🟢 Infra — SETUP.md + Changelog
+### 2. 🟡 Qualidade de Vida — Paginação
 
 | Item | O que fazer |
 |---|---|
-| `SETUP.md` | Documentar setup local: bucket gallery, VAPID keys, migrations, edge functions |
-| `CHANGELOG.md` | Criar changelog resumido com versões (v1.0, v1.1...) |
+| Listas longas | Paginação em clientes e agendamentos (20 por página) |
 
-### 5. 🟢 Qualidade de Vida — ✅ Confirmação ao sair (Concluído)
+### 3. 🟢 Qualidade de Vida — ✅ Confirmação ao sair (Concluído)
 
 | Item | O que fazer |
 |---|---|
 | ~~Confirmação ao sair~~ | ✅ De formulários com dados não salvos — hook `useUnsavedChanges` implementado |
-
-### 6. 🟡 Técnico — TanStack React Query
-
-| Item | O que fazer |
-|---|---|
-| Cache e refetch automático | Substituir `useEffect` + `useState` por queries gerenciadas |
-
-### 7. 🔵 Testes Automatizados
-
-| Item | O que fazer |
-|---|---|
-| Unitários (vitest) | Testar criação de serviço com `is_combo`, RLS multi-tenant |
-| Push notification flow | Subscribe → trigger → receive |
-| Playwright (E2E) | Fluxos críticos (booking, login admin, cancelamento) |
 
 ---
 

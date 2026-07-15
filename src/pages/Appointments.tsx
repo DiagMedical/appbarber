@@ -5,8 +5,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Pagination } from '@/components/Pagination'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
+import { usePagination } from '@/hooks/usePagination'
 import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, Clock3, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { sendText } from '@/lib/evolution'
@@ -61,6 +63,8 @@ function Appointments() {
   const totalDuration = useMemo(() => selectedServices.reduce((acc, s) => acc + s.duration_minutes, 0), [selectedServices])
   const totalPrice = useMemo(() => selectedServices.reduce((acc, s) => acc + Number(s.price), 0), [selectedServices])
   const totalBuffer = useMemo(() => selectedServices.length > 0 ? Math.max(...selectedServices.map((s) => s.buffer_minutes ?? 0)) : 0, [selectedServices])
+
+  const { page, setPage, totalPages, pageItems: pageAppointments } = usePagination(appointments, 20)
 
   function toggleServiceSelection(id: string) {
     setServiceIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
@@ -438,45 +442,46 @@ function Appointments() {
             <p className="text-sm">{filter === 'hoje' ? 'Nenhum agendamento para hoje' : 'Nenhum agendamento encontrado'}</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {appointments.map((apt, i) => (
-              <Card
-                key={apt.id}
-                onClick={() => openDetails(apt)}
-                className="animate-slide-left cursor-pointer border-indigo-500/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <CardContent className="flex items-center justify-between gap-4 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`mt-1 flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${
-                      apt.status === 'completed' ? 'from-green-500 to-emerald-600' :
-                      apt.status === 'cancelled' ? 'from-red-500 to-rose-600' :
-                      apt.status === 'confirmed' ? 'from-indigo-500 to-blue-600' :
-                      'from-amber-500 to-orange-600'
-                    } text-white shadow-md`}>
-                      <Calendar className="size-4" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{apt.clientName}</p>
-                        <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${statusColors[apt.status]}`}>
-                          {statusLabels[apt.status] ?? apt.status}
-                        </span>
+          <>
+            <div className="space-y-3">
+              {pageAppointments.map((apt, i) => (
+                <Card
+                  key={apt.id}
+                  onClick={() => openDetails(apt)}
+                  className="animate-slide-left cursor-pointer border-indigo-500/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <CardContent className="flex items-center justify-between gap-4 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-1 flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${
+                        apt.status === 'completed' ? 'from-green-500 to-emerald-600' :
+                        apt.status === 'cancelled' ? 'from-red-500 to-rose-600' :
+                        apt.status === 'confirmed' ? 'from-indigo-500 to-blue-600' :
+                        'from-amber-500 to-orange-600'
+                      } text-white shadow-md`}>
+                        <Calendar className="size-4" />
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {apt.barberName} · {apt.serviceName}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDateTime(apt.start_time)}
-                      </p>
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">{apt.clientName}</p>
+                          <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${statusColors[apt.status]}`}>
+                            {statusLabels[apt.status] ?? apt.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {apt.barberName} · {apt.serviceName}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDateTime(apt.start_time)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="hidden rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 sm:inline-flex">
-                      Abrir detalhes <ArrowRight className="ml-1 size-3.5" />
-                    </span>
-                    {apt.status === 'confirmed' && (
-                      <>
+                    <div className="flex items-center gap-1">
+                      <span className="hidden rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 sm:inline-flex">
+                        Abrir detalhes <ArrowRight className="ml-1 size-3.5" />
+                      </span>
+                      {apt.status === 'confirmed' && (
+                        <>
                         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'completed') }} title="Concluir" className="text-muted-foreground hover:text-green-500">
                           <CheckCircle2 className="size-4" />
                         </Button>
@@ -498,6 +503,10 @@ function Appointments() {
               </Card>
             ))}
           </div>
+          <div className="mt-4">
+            <Pagination page={page} totalPages={totalPages} totalItems={appointments.length} onPageChange={setPage} />
+          </div>
+          </>
         )}
       </div>
 
