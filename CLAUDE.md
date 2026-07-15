@@ -3,9 +3,16 @@
 > 🚨 **IMPORTANT**: READ THIS BEFORE TAKING ANY ACTION.
 > Any AI agent accessing this codebase MUST follow this guide. Do not reverse, rewrite, or roll back features from completed sessions.
 
-## Current State (Sessão 31 — Docs atualizados em 2026-07-14)
+## Current State (Sessão 32 — Confirmação ao sair com dados não salvos — 2026-07-15)
 
 All code fully written, validated with `npm run build`.
+
+### Completed in Session 32 — Confirmação ao sair com dados não salvos (2026-07-15)
+- **Problema**: ao preencher formulários e clicar em outro link ou fechar o diálogo acidentalmente, os dados eram perdidos sem aviso.
+- **Hook criado `src/hooks/useUnsavedChanges.ts`**: combina `useBlocker` (React Router v7) para bloquear navegação interna + `beforeunload` para bloquear fechar/recarregar aba. Exibe `confirm()` perguntando se deseja realmente sair.
+- **Diálogos (Barbeiros/Serviços/Clientes)**: interceptado `onOpenChange` — se `form.formState.isDirty` estiver true, exibe confirmação antes de fechar.
+- **ShopSettings** (formulário inline): hook `useUnsavedChanges` ativado com `isDirty`. Após salvar, `form.reset(values)` é chamado para limpar o estado sujo.
+- **Build**: ✅ `npm run build` validado.
 
 ### Documentação atualizada (2026-07-14)
 - **ROADMAP.md**, **CLAUDE.md**, **AGENTS.md** tiveram itens já concluídos movidos para ✅ e pendências reais reordenadas por prioridade.
@@ -171,6 +178,9 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 - ~~Busca clientes por telefone~~ → ✅ Implementado em `Clients.tsx`
 - ~~Realtime no Dashboard~~ → ✅ Implementado (Sessão 28)
 
+**✅ Concluído (Sessão 32):**
+- ~~Confirmação ao sair de formulários com dados não salvos~~ → ✅ Hook `useUnsavedChanges` implementado e aplicado em Barbeiros, Serviços, Clientes e Configurações
+
 **❌ Pendentes reais:**
 
 **Admin:**
@@ -184,7 +194,6 @@ Após o push, a Vercel faz o deploy automaticamente via webhook. Se não atualiz
 
 **Qualidade de Vida:**
 - Atalhos de teclado (ex: `N` pra novo agendamento)
-- Confirmação ao sair de formulários com dados não salvos
 - Paginação em listas longas (clientes, agendamentos)
 
 ---

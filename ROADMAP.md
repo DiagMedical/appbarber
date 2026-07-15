@@ -29,6 +29,7 @@
 - **Sessão 27:** ErrorBoundary global
 - **Sessão 28:** Realtime no Dashboard + busca clientes por telefone
 - **Sessão 30:** Tradução labels de filtro (i18n)
+- **Sessão 32:** Confirmação ao sair com dados não salvos (`useUnsavedChanges` hook — Barbeiros, Serviços, Clientes, Configurações)
 - **Depoimentos dinâmicos:** Substituído `TESTIMONIALS` fixo por dados da tabela `testimonials`
 - **Portfólio barbeiros:** `photo_url` já exibido no site público
 - **WhatsApp fallback:** Link `wa.me` já exibido quando não há phone/whatsapp config
@@ -64,13 +65,11 @@
 | `SETUP.md` | Documentar setup local: bucket gallery, VAPID keys, migrations, edge functions |
 | `CHANGELOG.md` | Criar changelog resumido com versões (v1.0, v1.1...) |
 
-### 5. 🟡 Qualidade de Vida
+### 5. 🟢 Qualidade de Vida — ✅ Confirmação ao sair (Concluído)
 
 | Item | O que fazer |
 |---|---|
-| Atalhos de teclado | `N` = novo agendamento, `S` = salvar, etc. |
-| Paginação | Em listas longas (clientes, agendamentos) |
-| Confirmação ao sair | De formulários com dados não salvos |
+| ~~Confirmação ao sair~~ | ✅ De formulários com dados não salvos — hook `useUnsavedChanges` implementado |
 
 ### 6. 🟡 Técnico — TanStack React Query
 
