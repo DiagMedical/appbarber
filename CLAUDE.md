@@ -267,8 +267,9 @@ const targetShopId = selectedShopId || shop?.id  // shop?.id é fallback p/ clie
 3. **Timezone**: UTC-3 (`America/Sao_Paulo` / offset `-03:00`)
 4. **Build verification**: Sempre `npm run build` após qualquer mudança. Zero erros TypeScript
 5. **Types**: TypeScript estrito. Evitar `any` — exceto `form.tsx` (`rules` e `control`)
-6. **Git push**: NUNCA executar `git push` — sempre fornecer comando para o usuário
-7. **Admin**: Identificado por email em `ADMIN_EMAILS` no `AuthProvider.tsx`
+6. **Docs first, then push**: Antes de subir pro GitHub, SEMPRE atualizar `CLAUDE.md`, `ROADMAP.md` e `AGENTS.md` com o que foi feito na sessão. Só depois fazer commit + push.
+7. **Git push**: NUNCA executar `git push` — sempre fornecer comando para o usuário
+8. **Admin**: Identificado por email em `ADMIN_EMAILS` no `AuthProvider.tsx`
 
 ---
 

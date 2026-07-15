@@ -1192,7 +1192,7 @@ function PublicSite() {
         {galleryPhotos.length > 0 ? (
           <ScrollRevealSection>
             <SectionHeading overline="Espaço" title="Nosso ambiente" />
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className={`grid gap-5 ${galleryPhotos.length === 1 ? 'grid-cols-1' : galleryPhotos.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : galleryPhotos.length === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
               {galleryPhotos.map((photo, idx) => (
                 <div key={idx} className="group overflow-hidden rounded-2xl border border-white/[0.05] bg-neutral-900/30 backdrop-blur-md relative aspect-square">
                   <img
