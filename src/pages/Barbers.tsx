@@ -227,7 +227,7 @@ function Barbers() {
               <p className="text-sm text-muted-foreground">Lista com disponibilidade e acesso rápido aos horários</p>
             </div>
           </div>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset() }}>
+          <Dialog open={open} onOpenChange={(v) => { if (!v && form.formState.isDirty && !confirm('Você tem alterações não salvas. Deseja realmente sair?')) return; setOpen(v); if (!v) reset() }}>
             <DialogTrigger>
               <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
                 <Plus className="mr-2 size-4" /> Novo Barbeiro

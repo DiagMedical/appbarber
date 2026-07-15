@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
@@ -78,7 +79,8 @@ function ShopSettings() {
     },
   })
 
-  const { formState: { isSubmitting }, watch, setValue } = form
+  const { formState: { isSubmitting, isDirty }, watch, setValue } = form
+  useUnsavedChanges(isDirty)
   const logoUrl = watch('logo_url')
 
   // Populate form when shop data is available
@@ -111,6 +113,7 @@ function ShopSettings() {
       return
     }
 
+    form.reset(values)
     toast.success('Configurações salvas com sucesso!')
     await refreshShop()
   }
