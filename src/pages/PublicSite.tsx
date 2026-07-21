@@ -901,7 +901,7 @@ function PublicSite() {
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-neutral-550 flex items-center gap-1.5"><Calendar className="size-3.5" /> Próximos dias disponíveis</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5"><Calendar className="size-3.5" /> Próximos dias disponíveis</label>
                         <div className="flex gap-2.5 overflow-x-auto pb-3 pt-1 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
                           {dateList.map((d) => {
                             const isSelected = date === d.dateKey
@@ -933,7 +933,7 @@ function PublicSite() {
                       </div>
 
                       <div className="space-y-3 pt-1">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-neutral-550 flex items-center gap-1.5"><Clock className="size-3.5" /> Horários disponíveis</label>
+                        <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5"><Clock className="size-3.5" /> Horários disponíveis</label>
                         {loadingSlots ? (
                           <div className="flex items-center justify-center gap-2.5 py-12 text-sm text-neutral-500">
                             <div className="size-5 animate-spin rounded-full border-2 border-white/20 border-t-amber-500" />
@@ -944,7 +944,7 @@ function PublicSite() {
                             Selecione uma data acima para visualizar a grade de horários.
                           </div>
                         ) : availableSlots.length === 0 ? (
-                          <div className="rounded-2xl border border-amber-500/10 bg-amber-500/5 p-5 text-center text-sm text-amber-550">
+                          <div className="rounded-2xl border border-amber-500/10 bg-amber-500/5 p-5 text-center text-sm text-amber-400">
                             Nenhum horário disponível para este profissional nesta data. Tente outra data.
                           </div>
                         ) : (
@@ -1059,7 +1059,7 @@ function PublicSite() {
                           </div>
                           
                           <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-neutral-550">WhatsApp</label>
+                            <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500">WhatsApp</label>
                             <input
                               type="tel"
                               value={phone}
@@ -1073,7 +1073,7 @@ function PublicSite() {
                         </div>
 
                         {error ? (
-                          <div className="p-3 text-xs text-rose-450 border border-rose-500/20 bg-rose-500/10 rounded-xl">
+                          <div className="p-3 text-xs text-rose-400 border border-rose-500/20 bg-rose-500/10 rounded-xl">
                             {error}
                           </div>
                         ) : null}
@@ -1118,7 +1118,7 @@ function PublicSite() {
                     
                     <div className="space-y-3.5 border-t border-white/[0.03] pt-4 text-xs">
                       <div>
-                        <p className="text-[9px] uppercase tracking-wider text-neutral-550">Serviço Selecionado</p>
+                        <p className="text-[9px] uppercase tracking-wider text-neutral-500">Serviço Selecionado</p>
                         <p className="mt-0.5 font-medium text-white text-sm">{bookingSummary.serviceName}</p>
                         {selectedServices.length > 0 && (
                           <div className="mt-1 flex items-center justify-between text-neutral-500 text-[11px]">
@@ -1129,23 +1129,23 @@ function PublicSite() {
                       </div>
 
                       <div>
-                        <p className="text-[9px] uppercase tracking-wider text-neutral-550">Profissional Selecionado</p>
+                        <p className="text-[9px] uppercase tracking-wider text-neutral-500">Profissional Selecionado</p>
                         <p className="mt-0.5 font-medium text-white text-sm">{bookingSummary.barberName}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <p className="text-[9px] uppercase tracking-wider text-neutral-550">Data Escolhida</p>
+                          <p className="text-[9px] uppercase tracking-wider text-neutral-500">Data Escolhida</p>
                           <p className="mt-0.5 font-medium text-white text-sm">{bookingSummary.dateLabel}</p>
                         </div>
                         <div>
-                          <p className="text-[9px] uppercase tracking-wider text-neutral-550">Horário Escolhido</p>
+                          <p className="text-[9px] uppercase tracking-wider text-neutral-500">Horário Escolhido</p>
                           <p className="mt-0.5 font-medium text-white text-sm">{bookingSummary.timeLabel}</p>
                         </div>
                       </div>
 
                       <div>
-                        <p className="text-[9px] uppercase tracking-wider text-neutral-550">Seu WhatsApp</p>
+                        <p className="text-[9px] uppercase tracking-wider text-neutral-500">Seu WhatsApp</p>
                         <p className="mt-0.5 font-medium text-white text-sm">{bookingSummary.phoneLabel}</p>
                       </div>
                     </div>
@@ -1330,7 +1330,7 @@ function InfoBlock({ icon, label, value }: { icon: React.ReactNode; label: strin
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div>
         <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">{label}</p>
-        <p className="mt-1 text-sm text-neutral-350 leading-relaxed font-medium">{value}</p>
+        <p className="mt-1 text-sm text-neutral-300 leading-relaxed font-medium">{value}</p>
       </div>
     </div>
   )
@@ -1342,7 +1342,7 @@ function InfoBlockWithLink({ icon, label, href, children }: { icon: React.ReactN
       <span className="mt-0.5 shrink-0">{icon}</span>
       <div>
         <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">{label}</p>
-        <a href={href} target="_blank" rel="noreferrer" className="mt-1 block text-sm text-neutral-350 hover:underline hover:text-amber-400 transition font-medium">{children}</a>
+        <a href={href} target="_blank" rel="noreferrer" className="mt-1 block text-sm text-neutral-300 hover:underline hover:text-amber-400 transition font-medium">{children}</a>
       </div>
     </div>
   )
