@@ -65,7 +65,12 @@ export async function deletePhoto(publicUrl: string): Promise<boolean> {
 
 export async function uploadBarberPhoto(shopId: string, barberId: string, file: File): Promise<string | null> {
   const ext = file.name.split('.').pop() || 'jpg'
-  const path = `${shopId}/barbers/${barberId}.${ext}`
+  // Path estável por barbeiro (upsert substitui o arquivo), mas com um
+  // sufixo de versionamento pra invalidar cache do navegador/CDN quando a
+  // foto é trocada. barberId deve ser único (ID real ou temporário) — nunca
+  // uma string compartilhada como 'new', senão barbeiros diferentes colidem.
+  const cacheBust = Date.now()
+  const path = `${shopId}/barbers/${barberId}_${cacheBust}.${ext}`
 
   const { error } = await supabase.storage
     .from(GALLERY_BUCKET)

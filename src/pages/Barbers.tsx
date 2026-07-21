@@ -59,6 +59,12 @@ function Barbers() {
   const [availData, setAvailData] = useState<Record<number, { on: boolean; start: string; end: string }>>({})
 
   const [newPortfolioPhotos, setNewPortfolioPhotos] = useState<string[]>([])
+  // ID temporário único para cada formulário NOVO — usado no path de upload
+  // da foto, para que barbeiros diferentes não gravem por cima do mesmo
+  // arquivo (bug: todo "novo" usava 'new' e colidiam entre si).
+  const [draftBarberId, setDraftBarberId] = useState(() =>
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `draft-${Date.now()}`
+  )
 
   const form = useForm<BarberFormValues>({
     resolver: zodResolver(barberSchema),
@@ -134,6 +140,10 @@ function Barbers() {
     })
     setEditing(null)
     setNewPortfolioPhotos([])
+    // Novo draft = novo path de upload, evitando colisão entre barbeiros
+    setDraftBarberId(
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `draft-${Date.now()}`
+    )
   }
 
   async function onSubmit(values: BarberFormValues) {
@@ -305,7 +315,7 @@ function Barbers() {
                                   if (!file || !shop) return
                                   await ensureGalleryBucket()
                                   try {
-                                    const barberId = editing?.id || 'new'
+                                    const barberId = editing?.id || draftBarberId
                                     const url = await uploadBarberPhoto(shop.id, barberId, file)
                                     if (url) {
                                       field.onChange(url)
