@@ -105,71 +105,85 @@ function AppLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-gradient-to-b from-indigo-950 via-indigo-950 to-indigo-900 p-4 text-white transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="mb-8 flex flex-col items-center">
-          <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-indigo-500/15 bg-gradient-to-b from-indigo-950 via-slate-950 to-indigo-950 p-4 text-white shadow-2xl backdrop-blur-xl transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="mb-6 flex flex-col items-center">
+          <div className="relative mb-3 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-blue-600 shadow-xl shadow-indigo-500/30 ring-1 ring-white/20">
             <Scissors className="size-7 text-white" />
+            <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-indigo-950" title="Sistema Online">
+              <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            </span>
           </div>
           <div className="text-center">
-            <h1 className="bg-gradient-to-r from-indigo-200 to-blue-200 bg-clip-text text-xl font-black tracking-tight text-transparent">AppBarber</h1>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300/60">Gestão</p>
+            <h1 className="bg-gradient-to-r from-indigo-200 via-white to-blue-200 bg-clip-text text-xl font-black tracking-tight text-transparent font-heading">
+              {shop?.name || 'AppBarber'}
+            </h1>
+            <div className="mt-1 flex items-center justify-center gap-1.5">
+              <span className="inline-block size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-indigo-300/70">Painel de Gestão</p>
+            </div>
           </div>
           <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-indigo-300 hover:bg-white/10 hover:text-white lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="size-4" />
           </Button>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+
+        <nav className="flex flex-1 flex-col gap-1.5 overflow-y-auto pr-1">
           {navItems.map((item) => {
             const Icon = item.icon
             const active = location.pathname === item.href
             return (
               <Button
                 key={item.href}
-                className={`justify-start transition-all duration-200 ${
+                className={`group relative justify-start font-medium transition-all duration-200 rounded-xl ${
                   active
-                    ? 'bg-indigo-600 text-white shadow-md hover:bg-indigo-500'
-                    : 'bg-transparent text-indigo-200 hover:bg-white/10 hover:text-white'
+                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/20 font-semibold'
+                    : 'bg-transparent text-indigo-200/80 hover:bg-white/10 hover:text-white'
                 }`}
                 onClick={() => { navigate(item.href); setSidebarOpen(false) }}
               >
-                <Icon className="mr-2 size-4" /> {item.label}
+                <Icon className={`mr-2.5 size-4.5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-white' : 'text-indigo-400'}`} />
+                <span>{item.label}</span>
+                {active && (
+                  <span className="ml-auto size-1.5 rounded-full bg-white shadow-sm" />
+                )}
               </Button>
             )
           })}
           {isAdmin && shop ? (
             <Button
-              className="justify-start bg-transparent text-indigo-200 hover:bg-white/10 hover:text-white transition-all duration-200"
+              className="justify-start bg-transparent text-indigo-200/80 hover:bg-white/10 hover:text-white transition-all duration-200 rounded-xl"
               onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
             >
-              <Globe className="mr-2 size-4" /> Site Público
+              <Globe className="mr-2.5 size-4.5 text-indigo-400" /> Site Público
             </Button>
           ) : null}
         </nav>
 
-        {/* WhatsApp Status Badge — só admin */}
+        {/* WhatsApp Status Badge */}
         {isAdmin && waState !== 'loading' && waState !== 'unknown' && (
           <button
             onClick={() => { navigate('/whatsapp'); setSidebarOpen(false) }}
             title={waState === 'connected' ? 'WhatsApp conectado' : 'WhatsApp desconectado — clique para configurar'}
-            className={`mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 ${
+            className={`mb-3 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 border ${
               waState === 'connected'
-                ? 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
-                : 'bg-red-500/15 text-red-300 hover:bg-red-500/25 animate-pulse'
+                ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+                : 'border-red-500/20 bg-red-500/10 text-red-300 hover:bg-red-500/20 animate-pulse'
             }`}
           >
             <span className={`size-2 rounded-full flex-shrink-0 ${
-              waState === 'connected' ? 'bg-emerald-400' : 'bg-red-400'
+              waState === 'connected' ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-red-400'
             }`} />
-            <MessageSquare className="size-3 flex-shrink-0" />
-            {waState === 'connected' ? 'WhatsApp Ativo' : 'WhatsApp Offline'}
+            <MessageSquare className="size-3.5 flex-shrink-0" />
+            <span className="truncate">{waState === 'connected' ? 'WhatsApp Online' : 'WhatsApp Desconectado'}</span>
           </button>
         )}
-        <div className="flex items-center justify-between border-t border-white/10 pt-4">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-indigo-200 hover:bg-white/10 hover:text-white">
-            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+
+        <div className="flex items-center justify-between border-t border-indigo-500/15 pt-3">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-indigo-200/80 hover:bg-white/10 hover:text-white rounded-xl">
+            {theme === 'dark' ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5 text-indigo-300" />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/login') }} className="text-indigo-200 hover:bg-white/10 hover:text-white">
-            <LogOut className="size-4" />
+          <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/login') }} className="text-indigo-200/80 hover:bg-rose-500/20 hover:text-rose-300 rounded-xl" title="Sair da conta">
+            <LogOut className="size-4.5" />
           </Button>
         </div>
       </aside>

@@ -15,7 +15,7 @@ import {
   startOfUTC3DayISO,
   startOfUTC3MonthISO,
 } from '@/lib/timezone'
-import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, DollarSign, TrendingUp, Users, Scissors, XCircle } from 'lucide-react'
+import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, DollarSign, Users, Scissors, XCircle } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
 import type { Barber } from '@/types/database'
 
@@ -503,27 +503,62 @@ function Dashboard() {
 
   const maxLoad = Math.max(...barberLoad.map((item) => item.total), 1)
 
+  // Linha do tempo atual (08:00 às 20:00)
+  const now = new Date()
+  const currentHour = now.getHours()
+  const currentMin = now.getMinutes()
+  const currentTotalMin = currentHour * 60 + currentMin
+  const isTimeInBusinessHours = currentTotalMin >= 480 && currentTotalMin <= 1200
+  const currentTimeTopPercent = ((currentTotalMin - 480) / 720) * 100
+
+  // Data formatada elegante
+  const formattedToday = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(now)
+
   return (
     <PageTransition>
-      <div className="p-4 sm:p-6">
-        <div className="mb-8">
+      <div className="relative p-4 sm:p-6 lg:p-8 space-y-8">
+        {/* Ambient Glow */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-7xl bg-gradient-to-b from-indigo-500/10 via-sky-500/5 to-transparent blur-3xl" />
+
+        {/* Header com Saudações e Data */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 capitalize">
+                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {formattedToday}
+              </span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight font-heading bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
+              Painel de Controle
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Visão geral das operações, faturamento e fluxo de clientes em tempo real.
+            </p>
+          </div>
+
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/20">
-              <TrendingUp className="size-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Painel operacional da barbearia</p>
-            </div>
+            <Button
+              onClick={() => window.location.href = '/appointments'}
+              className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-500 hover:to-blue-500 transition-all duration-300 font-semibold"
+            >
+              <Calendar className="mr-2 size-4" /> Ver Todos Agendamentos
+            </Button>
           </div>
         </div>
 
+        {/* ── Cards de Estatísticas Principais (Linear / Stripe Style) ── */}
         {!counts ? (
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => <StatsCardSkeleton key={i} />)}
           </div>
         ) : (
-          <div className="mb-8 grid gap-5 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {cards.map((card, i) => {
               const Icon = card.icon
               const keyMap = ['barbers', 'services', 'todayAppointments', 'totalAppointments', 'monthRevenue'] as const
@@ -533,25 +568,31 @@ function Dashboard() {
               return (
                 <div
                   key={card.label}
-                  className={`group animate-fade-in-up relative overflow-hidden rounded-2xl border bg-card p-6 shadow-lg ${card.shadow} ${card.border} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl`}
+                  className={`group animate-fade-in-up relative overflow-hidden rounded-2xl border bg-card/60 backdrop-blur-xl p-5 shadow-lg ${card.shadow} ${card.border} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:border-indigo-500/40`}
                   style={{ animationDelay: `${card.delay}ms` }}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${card.from} ${card.to} opacity-[0.04] transition-opacity duration-300 group-hover:opacity-[0.08]`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.from} ${card.to} opacity-[0.03] transition-opacity duration-300 group-hover:opacity-[0.08]`} />
+                  
+                  {/* Subtle Background Curve (Sparkline SVG) */}
+                  <svg className="absolute -bottom-2 -right-4 h-16 w-32 opacity-15 transition-opacity group-hover:opacity-30" viewBox="0 0 100 40" fill="none">
+                    <path d="M0 35 Q 25 15, 50 25 T 100 5 L 100 40 L 0 40 Z" fill="currentColor" className="text-indigo-500" />
+                  </svg>
+
                   <div className="relative">
-                    <div className="mb-4 flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">{card.label}</span>
-                      <div className={`flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${card.from} ${card.to} text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{card.label}</span>
+                      <div className={`flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.from} ${card.to} text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`}>
                         <Icon className="size-5" />
                       </div>
                     </div>
-                    <p className={isCurrency ? "text-2xl sm:text-3xl font-bold tracking-tight" : "text-3xl sm:text-4xl font-bold tracking-tight"}>
+                    <p className={isCurrency ? "text-2xl sm:text-3xl font-extrabold tracking-tight font-heading" : "text-3xl sm:text-4xl font-extrabold tracking-tight font-heading"}>
                       {isCurrency ? (
-                        <span>{value}</span>
+                        <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 bg-clip-text text-transparent">{value}</span>
                       ) : (
                         <AnimatedCounter value={rawValue} duration={1400} />
                       )}
                     </p>
-                    <div className={`mt-3 h-1 w-12 rounded-full bg-gradient-to-r ${card.from} ${card.to} transition-all duration-300 group-hover:w-full`} />
+                    <div className={`mt-3 h-1 w-8 rounded-full bg-gradient-to-r ${card.from} ${card.to} transition-all duration-500 group-hover:w-full`} />
                   </div>
                 </div>
               )
@@ -559,7 +600,8 @@ function Dashboard() {
           </div>
         )}
 
-        <div className="mb-6 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+        {/* ── Métricas de Atenção Imediata & Próximos Atendimentos ── */}
+        <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-4 sm:grid-cols-2">
             {[
               {
@@ -570,6 +612,7 @@ function Dashboard() {
                 from: 'from-indigo-500',
                 to: 'to-blue-600',
                 border: 'border-indigo-500/20',
+                badgeBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
               },
               {
                 label: 'Pendentes hoje',
@@ -579,6 +622,7 @@ function Dashboard() {
                 from: 'from-amber-500',
                 to: 'to-orange-600',
                 border: 'border-amber-500/20',
+                badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
               },
               {
                 label: 'Concluídos hoje',
@@ -588,6 +632,7 @@ function Dashboard() {
                 from: 'from-emerald-500',
                 to: 'to-green-600',
                 border: 'border-emerald-500/20',
+                badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
               },
               {
                 label: 'Cancelados hoje',
@@ -597,26 +642,27 @@ function Dashboard() {
                 from: 'from-rose-500',
                 to: 'to-red-600',
                 border: 'border-rose-500/20',
+                badgeBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
               },
             ].map((item) => {
               const Icon = item.icon
               return (
                 <div
                   key={item.label}
-                  className={`relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${item.border}`}
+                  className={`relative overflow-hidden rounded-2xl border bg-card/60 backdrop-blur-xl p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${item.border}`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.from} ${item.to} opacity-[0.04]`} />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.from} ${item.to} opacity-[0.03]`} />
                   <div className="relative">
-                    <div className="mb-4 flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">{item.label}</span>
-                      <div className={`flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${item.from} ${item.to} text-white shadow-md`}>
-                        <Icon className="size-4" />
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</span>
+                      <div className={`flex size-9 items-center justify-center rounded-xl bg-gradient-to-br ${item.from} ${item.to} text-white shadow-md`}>
+                        <Icon className="size-4.5" />
                       </div>
                     </div>
-                    <p className="text-3xl font-bold tracking-tight">
+                    <p className="text-3xl font-extrabold tracking-tight font-heading">
                       <AnimatedCounter value={item.value} duration={1200} />
                     </p>
-                    <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                    <p className="mt-1.5 text-xs text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
               )
@@ -754,12 +800,12 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-indigo-500/10 bg-card shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-indigo-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
             <div className="flex" style={{ minWidth: '700px' }}>
-              <div className="w-14 shrink-0 border-r border-indigo-500/10">
-                <div className="h-10 border-b border-indigo-500/10" />
+              <div className="w-14 shrink-0 border-r border-indigo-500/10 bg-indigo-500/[0.02]">
+                <div className="h-11 border-b border-indigo-500/10" />
                 {HOURS.map((h) => (
-                  <div key={h} className="flex h-[60px] items-end justify-center pb-1 text-[11px] text-muted-foreground">
+                  <div key={h} className="flex h-[60px] items-end justify-center pb-1 text-[11px] font-semibold text-muted-foreground">
                     {formatHour(h)}
                   </div>
                 ))}
@@ -770,27 +816,42 @@ function Dashboard() {
                 const isToday = dayStr === todayStr
                 const appts = getApptsForDay(day)
                 return (
-                  <div key={dayStr} className={`relative min-w-0 flex-1 border-r border-indigo-500/10 last:border-r-0 ${isToday ? 'bg-indigo-500/5' : ''}`}>
-                    <div className={`border-b border-indigo-500/10 p-2 text-center text-xs font-medium ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground'}`}>
+                  <div key={dayStr} className={`relative min-w-0 flex-1 border-r border-indigo-500/10 last:border-r-0 ${isToday ? 'bg-indigo-500/[0.04]' : ''}`}>
+                    <div className={`border-b border-indigo-500/10 p-2.5 text-center text-xs font-semibold ${isToday ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold' : 'text-muted-foreground'}`}>
                       <span className="hidden sm:inline">{formatDateBR(day)}</span>
                       <span className="sm:hidden">
                         {WEEKDAY_LABELS[day.getDay()]}
                       </span>
+                      {isToday && (
+                        <span className="ml-1.5 inline-block size-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                      )}
                     </div>
                     <div className="relative" style={{ height: `${HOURS.length * 60}px` }}>
                       {HOURS.map((h) => (
                         <div key={h} className="absolute left-0 right-0 border-t border-indigo-500/5" style={{ top: `${((h - 8) / 12) * 100}%` }} />
                       ))}
+
+                      {/* 🔴 Linha do Tempo em Tempo Real (Hoje) */}
+                      {isToday && isTimeInBusinessHours && (
+                        <div
+                          className="pointer-events-none absolute left-0 right-0 z-20 flex items-center"
+                          style={{ top: `${currentTimeTopPercent}%` }}
+                        >
+                          <span className="size-2 rounded-full bg-rose-500 ring-4 ring-rose-500/30 animate-pulse -ml-1" />
+                          <div className="h-[2px] w-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                        </div>
+                      )}
+
                       {appts.map((appt) => {
                         const pos = getApptPosition(appt)
                         return (
                           <div
                             key={appt.id}
-                            className={`absolute left-0.5 right-0.5 overflow-hidden rounded-md border-l-2 px-1.5 py-1 text-xs transition-all hover:z-10 hover:shadow-md ${statusColors[appt.status] ?? 'border-l-gray-400 bg-gray-500/10'}`}
+                            className={`absolute left-1 right-1 overflow-hidden rounded-xl border-l-[3px] p-1.5 text-xs shadow-sm transition-all duration-200 hover:z-30 hover:scale-[1.02] hover:shadow-md ${statusColors[appt.status] ?? 'border-l-gray-400 bg-gray-500/10'}`}
                             style={{ top: pos.top, height: pos.height }}
                           >
-                            <p className="truncate font-medium leading-tight">{appt.client_name}</p>
-                            <p className="truncate leading-tight text-muted-foreground">{appt.service_name}</p>
+                            <p className="truncate font-bold leading-tight text-foreground">{appt.client_name}</p>
+                            <p className="truncate text-[11px] leading-tight text-muted-foreground mt-0.5">{appt.service_name}</p>
                           </div>
                         )
                       })}
