@@ -36,6 +36,9 @@ const barberSchema = z.object({
     .string()
     .regex(/^\d{10,15}$/, 'Formato inválido. Use código do país + DDD + número (ex: 5511999999999)')
     .or(z.literal('')),
+  commission_rate: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 100, {
+    message: 'Comissão deve ser entre 0% e 100%',
+  }),
   bio: z.string().max(300, 'Bio muito longa').or(z.literal('')),
   photo_url: z.string().or(z.literal('')),
 })
@@ -71,6 +74,9 @@ function Barbers() {
     defaultValues: {
       name: '',
       phone: '',
+      commission_rate: '50',
+      bio: '',
+      photo_url: '',
     },
   })
 
@@ -79,6 +85,7 @@ function Barbers() {
       form.reset({
         name: editing.name,
         phone: editing.phone ?? '',
+        commission_rate: String(editing.commission_rate ?? 50),
         bio: editing.bio ?? '',
         photo_url: editing.photo_url ?? '',
       })
@@ -135,6 +142,7 @@ function Barbers() {
     form.reset({
       name: '',
       phone: '',
+      commission_rate: '50',
       bio: '',
       photo_url: '',
     })
@@ -151,6 +159,7 @@ function Barbers() {
     const payload: Record<string, unknown> = {
       name: values.name.trim(),
       phone: values.phone.trim() || null,
+      commission_rate: parseFloat(values.commission_rate) || 50,
       bio: values.bio.trim() || null,
       photo_url: values.photo_url.trim() || null,
       portfolio_photos: newPortfolioPhotos.length > 0 ? newPortfolioPhotos : null,
@@ -273,6 +282,32 @@ function Barbers() {
                           <Input placeholder="Ex: 5511999999999" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
                         </FormControl>
                         <p className="text-xs text-muted-foreground">Para notificações de novos agendamentos.</p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="commission_rate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comissão Padrão (%)</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="1"
+                              placeholder="50"
+                              className="border-indigo-500/20 pr-8 focus:ring-indigo-500"
+                              {...field}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">%</span>
+                          </div>
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">Porcentagem repassada ao profissional por serviço.</p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -489,6 +524,9 @@ function Barbers() {
                           </span>
                           <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
                             {availabilityCount[barber.id] ?? 0} dias
+                          </span>
+                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 font-medium text-amber-600 dark:text-amber-400">
+                            {barber.commission_rate ?? 50}% comissão
                           </span>
                         </div>
                       </div>

@@ -437,6 +437,14 @@ src/
 - **Build:** ✅ `npm run build` validado.
 - **Commit:** `dcf341d` — "fix: traduz labels dos filtros de Serviços, Barbeiros e Clientes".
 
+### Sessão 33 — Módulo Financeiro, Comissões e Fix Dropdowns i18n (2026-08-20)
+- **`supabase/migrations/20260820_add_commissions_and_payments.sql`**: Adicionadas colunas `commission_rate` em `barbers`, e `payment_method`, `commission_amount`, `paid_at` em `appointments`.
+- **`src/types/database.ts`**: Atualizadas as interfaces `Barber`, `Appointment` e criado o tipo `PaymentMethod`.
+- **`src/pages/Barbers.tsx`**: Campo e validação de taxa de comissão padrão por barbeiro (0 a 100%, default 50%) + badge de comissão nos cards.
+- **`src/pages/Appointments.tsx`**: Modal de conclusão de atendimento com valor cobrado, seleção de forma de pagamento (`pix`, `credit_card`, `debit_card`, `cash`, `other`), prévia e salvamento de comissão calculada + tags na lista e detalhes.
+- **`src/pages/Reports.tsx`**: Painel financeiro expandido com Faturamento Bruto, Comissões a Pagar (Repasse), Lucro Líquido Retido, Tabela comparativa de fechamento por barbeiro e distribuição por Forma de Pagamento.
+- **Tradução de Selects / Dropdowns**: Corrigidos todos os `<SelectValue>` que renderizavam texto bruto em inglês antes de clicar (Reports, Appointments, Booking, Clients, Services, Barbers).
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
@@ -445,41 +453,17 @@ src/
 - Autenticação (login por barbearia / admin) + fluxo de onboarding.
 - Dashboard com agenda semanal, indicadores de atenção, faturamento do mês.
 - CRUD de Barbeiros, Serviços, Clientes, Agendamentos (validação de horários, buffer, price_at_booking).
-- Relatórios (resumo, por barbeiro, faturamento mensal).
+- Módulo Financeiro & Gestão de Comissões por Barbeiro (taxa %, formas de pagamento, repasses e fechamento de caixa).
+- Relatórios financeiros (faturamento bruto, repasse barbeiros, lucro líquido da loja, distribuição por meios de pagamento).
 - Configurações WhatsApp (Evolution API) + Webhook + Cron de lembrete + Re-engajamento.
 - Site público (slug, hero, galeria, depoimentos, portfólio, horários “fechado”, Maps/Waze, telefone formatado).
 - Configurações da loja (nome, telefone, endereço, logo) com upload direto ao Storage.
 - Painel Admin (listar/criar/editar/excluir lojas, criar usuário auth via Edge Function `create-auth-user`).
 - RLS corrigido para multi-tenant (admin vê todas, cliente vê só sua loja, anon acessa site público).
 - Push notifications para barbeiros (Web Push + VAPID) – Edge Function `notify-barber-push`, Service Worker, NotificationContext, hook `useBarberPush`.
-- Correções de UI/UX: Dialog scroll, checkbox Combo funcional, card faturamento responsivo.
-- Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público — compatível com Google Calendar, iPhone Calendar e Outlook.
-- `ErrorBoundary` global (`src/components/ErrorBoundary.tsx`) — um erro de runtime numa página não derruba o SPA inteiro.
-- Realtime no Dashboard — atualiza cards, métricas, próximos atendimentos e agenda semanal automaticamente quando um agendamento muda (via Supabase Realtime).
-- Botão "Baixar Calendário (.ics)" agora presente tanto no site público quanto no fluxo interno `/booking`.
-- Multi-serviço no admin (`Booking.tsx`/`Appointments.tsx`), reagendamento (`ManageBooking.tsx`), lazy loading (`App.tsx`), busca de clientes por telefone (`Clients.tsx`) — todos já implementados.
-- Build validado (`npm run build`) em todas as sessões.
-- Commits sincronizados no `origin/main`.
-
-### ✅ Concluído (adicionado nesta atualização)
-- Deploy das variáveis de ambiente na Vercel (`VITE_ENABLE_BARBER_PUSH=true`, `VITE_VAPID_PUBLIC_KEY=...`).
-- Migrations de push aplicadas no Supabase (`20260730_create_push_subscriptions.sql`, `20260731_add_notifications_enabled_to_barbers.sql`, `20260732_add_barber_push_trigger.sql`).
-- Migration `is_combo` aplicada no Cloud (verificado via REST API em 2026-07-14).
-
-### 🔧 Pendente / Bloqueado
-1. **Habilitar Realtime na tabela `appointments`** (confirmar/executar) — adicionar à publication `supabase_realtime` no SQL Editor: `alter publication supabase_realtime add table appointments;`. O Dashboard (Sessão 28) já escuta o canal.
-2. **Testes automatizados** – adicionar testes unitários/integração para:  
-   - Criação de serviço com `is_combo`.  
-   - Fluxo de push (subscribe → trigger → receive).  
-   - RLS multi-tenant (admin vs cliente vs anon).  
-3. **Documentação de setup local** – criar/atualizar `SETUP.md` ou `README` com:  
-   - Criação do bucket `gallery` e policies de Storage.  
-   - Inserção das VAPID keys no Supabase Edge Function secrets.  
-   - Como rodar `supabase db push` / `supabase functions deploy`.  
-4. **Changelog resumido** – opcional `CHANGELOG.md` com versões (v1.0, v1.1 …) para leitura rápida por humanos/IA.  
-
-### 📌 Como a IA deve proceder
-- Ler este bloco para saber o que **já está pronto** (✅) e o que **falta** (🔧).  
-- Priorizar itens na ordem listada (variáveis Vercel → migrations → testes → docs → changelog).  
-- Ao concluir um item, mover para ✅ e registrar commit correspondente.
+- Download de arquivo `.ics` (calendário) na tela de sucesso do agendamento público e no fluxo `/booking`.
+- `ErrorBoundary` global (`src/components/ErrorBoundary.tsx`).
+- Realtime no Dashboard e Paginação em Clientes e Agendamentos (`usePagination`).
+- Correção de dropdowns/i18n em todos os Selects.
+- Build validado (`npm run build`).
 

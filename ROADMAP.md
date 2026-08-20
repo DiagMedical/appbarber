@@ -14,7 +14,7 @@
 
 ---
 
-## ✅ Concluído (2026-07-10)
+## ✅ Concluído (2026-08-20)
 
 - **Fase 0:** Migrations + Edge Functions + Storage bucket — tudo aplicado
 - **Fase 1:** 8 bugs críticos — RLS, timezone, empty arrays, buffer, etc.
@@ -29,35 +29,31 @@
 - **Sessão 27:** ErrorBoundary global
 - **Sessão 28:** Realtime no Dashboard + busca clientes por telefone
 - **Sessão 30:** Tradução labels de filtro (i18n)
-- **Sessão 32:** Confirmação ao sair com dados não salvos (`useUnsavedChanges` hook — Barbeiros, Serviços, Clientes, Configurações)
+- **Sessão 32:** Confirmação ao sair com dados não salvos (`useUnsavedChanges` hook) + Paginação em listas
+- **Sessão 33:** Módulo Financeiro & Gestão de Comissões por Barbeiro (taxa %, métodos de pagamento, modal de conclusão, fechamento de caixa em Relatórios, correção de dropdowns i18n)
 - **Depoimentos dinâmicos:** Substituído `TESTIMONIALS` fixo por dados da tabela `testimonials`
 - **Portfólio barbeiros:** `photo_url` já exibido no site público
 - **WhatsApp fallback:** Link `wa.me` já exibido quando não há phone/whatsapp config
 - **Upload logo ShopSettings:** Implementado com `uploadLogoPhoto`
 - **Migration `is_combo`:** Aplicada no Cloud — coluna ativa e funcional (verificado em 2026-07-14)
+- **Migration `commissions_and_payments`:** Criada em `supabase/migrations/20260820_add_commissions_and_payments.sql`
 
 ---
 
 ## 📋 Pendências (ordenadas por prioridade)
 
-### 1. 🟢 Infra — SETUP.md + Changelog (✅ Concluído)
+### 1. 🟢 Integração Google Calendar (Frente 3)
 
 | Item | O que fazer |
 |---|---|
-| ~~SETUP.md~~ | ✅ Documentar setup local: bucket gallery, VAPID keys, migrations, edge functions — Criado |
-| ~~CHANGELOG.md~~ | ✅ Criado com resumo de todas as sessões |
+| OAuth2 Google | Fluxo de conexão de conta Google no painel de configurações |
+| Sync de Eventos | Edge Function para espelhar agendamentos criados/editados no Google Agenda |
 
-### 2. 🟡 Qualidade de Vida — Paginação
-
-| Item | O que fazer |
-|---|---|
-| Listas longas | Paginação em clientes e agendamentos (20 por página) |
-
-### 3. 🟢 Qualidade de Vida — ✅ Confirmação ao sair (Concluído)
+### 2. 🟢 Infra & Realtime
 
 | Item | O que fazer |
 |---|---|
-| ~~Confirmação ao sair~~ | ✅ De formulários com dados não salvos — hook `useUnsavedChanges` implementado |
+| Realtime Cloud | Confirmar `alter publication supabase_realtime add table appointments;` no Supabase |
 
 ---
 

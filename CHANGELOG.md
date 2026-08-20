@@ -2,6 +2,13 @@
 
 ## [1.x] — 2026
 
+### Sessão 33 (2026-08-20)
+- **feat:** Módulo Financeiro & Controle de Comissões por Barbeiro
+- **feat:** Taxa de comissão configurável por profissional (`commission_rate` na tabela `barbers`) com badge no card
+- **feat:** Modal de conclusão de agendamento com seleção de forma de pagamento (`Pix`, `Cartão de Crédito/Débito`, `Dinheiro`, `Outro`) e cálculo automático de repasse ao profissional
+- **feat:** Relatório de Fechamento de Caixa & Comissões detalhado em `Reports.tsx` (Faturamento Bruto, Repasse a Pagar, Lucro Líquido Retido e Divisão por Forma de Pagamento)
+- **feat:** Migration `20260820_add_commissions_and_payments.sql` criada
+
 ### Sessão 32 (2026-07-15)
 - **feat:** Confirmação ao sair com dados não salvos — hook `useUnsavedChanges` em diálogos e formulário inline
 - **feat:** Galeria adaptável no site público (grid dinâmico conforme número de fotos)

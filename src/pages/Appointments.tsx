@@ -9,13 +9,13 @@ import { Pagination } from '@/components/Pagination'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
 import { usePagination } from '@/hooks/usePagination'
-import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, Clock3, ArrowRight } from 'lucide-react'
+import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, ArrowRight, DollarSign, CreditCard, Banknote, QrCode, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 import { sendText } from '@/lib/evolution'
 import { endOfUTC3DayISO, formatDateTime, formatTime, getUTC3DateKey, startOfUTC3DayISO } from '@/lib/timezone'
 import { getAvailableSlots } from '@/lib/availability'
 import { useAuth } from '@/providers/AuthProvider'
-import type { Appointment, Barber, Service } from '@/types/database'
+import type { Appointment, Barber, Service, PaymentMethod } from '@/types/database'
 
 type AppointmentItem = Appointment & {
   barberName: string
@@ -38,6 +38,14 @@ const statusColors: Record<string, string> = {
   completed: 'bg-green-500/10 text-green-600 dark:text-green-400',
 }
 
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, { label: string; icon: typeof QrCode }> = {
+  pix: { label: 'Pix', icon: QrCode },
+  credit_card: { label: 'Cartão de Crédito', icon: CreditCard },
+  debit_card: { label: 'Cartão de Débito', icon: CreditCard },
+  cash: { label: 'Dinheiro', icon: Banknote },
+  other: { label: 'Outro', icon: Wallet },
+}
+
 function Appointments() {
   const { shop, loading: shopLoading } = useAuth()
   const [appointments, setAppointments] = useState<AppointmentItem[]>([])
@@ -49,6 +57,14 @@ function Appointments() {
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentItem | null>(null)
   const [saving, setSaving] = useState(false)
+
+  // Modal de Conclusão e Pagamento
+  const [completeOpen, setCompleteOpen] = useState(false)
+  const [completingApt, setCompletingApt] = useState<AppointmentItem | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix')
+  const [paidAmount, setPaidAmount] = useState<number>(0)
+  const [barberCommissionRate, setBarberCommissionRate] = useState<number>(50)
+  const [completing, setCompleting] = useState(false)
 
   const [barberId, setBarberId] = useState('')
   const [serviceIds, setServiceIds] = useState<string[]>([])
@@ -274,15 +290,65 @@ function Appointments() {
     }
   }
 
+  function openCompleteDialog(apt: AppointmentItem) {
+    const barber = barbers.find((b) => b.id === apt.barber_id)
+    const rate = barber?.commission_rate ?? 50
+    const price = apt.price_at_booking ?? services.find((s) => s.id === apt.service_id)?.price ?? 0
+
+    setCompletingApt(apt)
+    setPaidAmount(price)
+    setBarberCommissionRate(rate)
+    setPaymentMethod('pix')
+    setCompleteOpen(true)
+  }
+
+  async function confirmCompleteAppointment() {
+    if (!shop || !completingApt) return
+    setCompleting(true)
+    try {
+      const commissionAmount = Number(((paidAmount * barberCommissionRate) / 100).toFixed(2))
+
+      const { error } = await supabase.from('appointments').update({
+        status: 'completed',
+        price_at_booking: paidAmount,
+        payment_method: paymentMethod,
+        commission_amount: commissionAmount,
+        paid_at: new Date().toISOString(),
+      }).eq('id', completingApt.id)
+
+      if (error) throw error
+
+      toast.success('Atendimento concluído e registrado com sucesso!')
+
+      if (completingApt.clientPhone) {
+        const msg = `✅ *AppBarber*\n\nSeu agendamento foi concluído! Obrigado pela preferência.`
+        const sent = await sendText({ number: completingApt.clientPhone, text: msg, shopId: shop.id })
+        if (!sent) console.log('WhatsApp não enviado')
+      }
+
+      setCompleteOpen(false)
+      setCompletingApt(null)
+      closeDetails()
+      load()
+    } catch (err) {
+      toast.error('Erro ao concluir atendimento')
+      console.error(err)
+    } finally {
+      setCompleting(false)
+    }
+  }
+
   async function handleStatusChange(apt: AppointmentItem, status: 'pending' | 'confirmed' | 'cancelled' | 'completed') {
+    if (status === 'completed') {
+      openCompleteDialog(apt)
+      return
+    }
     if (!shop) return
     await supabase.from('appointments').update({ status }).eq('id', apt.id)
     toast.success(`Agendamento ${statusLabels[status]?.toLowerCase()}`)
 
     if (apt.clientPhone) {
-      const msg = status === 'completed'
-        ? `✅ *AppBarber*\n\nSeu agendamento foi concluído! Obrigado pela preferência.`
-        : status === 'cancelled'
+      const msg = status === 'cancelled'
         ? `❌ *AppBarber*\n\nSeu agendamento foi cancelado. Entre em contato para reagendar.`
         : `🪒 *AppBarber*\n\nSeu agendamento foi confirmado!`
 
@@ -317,7 +383,9 @@ function Appointments() {
           <div className="flex items-center gap-2">
             <Select value={filter} onValueChange={(v) => v && setFilter(v)}>
               <SelectTrigger className="w-28 border-indigo-500/20 sm:w-32 focus:ring-indigo-500">
-                <SelectValue placeholder="Todos" />
+                <SelectValue placeholder="Todos">
+                  {(value) => ({ hoje: 'Hoje', todos: 'Todos' })[value as string] ?? 'Todos'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="hoje">Hoje</SelectItem>
@@ -338,7 +406,11 @@ function Appointments() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Barbeiro</label>
                     <Select value={barberId} onValueChange={(v) => v && setBarberId(v)}>
-                      <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500">
+                        <SelectValue placeholder="Selecione o barbeiro">
+                          {(value) => barbers.find((b) => b.id === value)?.name ?? 'Selecione o barbeiro'}
+                        </SelectValue>
+                      </SelectTrigger>
                       <SelectContent>
                         {barbers.map((b) => (
                           <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -467,6 +539,13 @@ function Appointments() {
                           <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${statusColors[apt.status]}`}>
                             {statusLabels[apt.status] ?? apt.status}
                           </span>
+                          {apt.status === 'completed' && apt.payment_method && (
+                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                              <DollarSign className="size-3" />
+                              {PAYMENT_METHOD_LABELS[apt.payment_method]?.label ?? apt.payment_method}
+                              {apt.price_at_booking ? ` · R$ ${Number(apt.price_at_booking).toFixed(2)}` : ''}
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {apt.barberName} · {apt.serviceName}
@@ -482,7 +561,7 @@ function Appointments() {
                       </span>
                       {apt.status === 'confirmed' && (
                         <>
-                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'completed') }} title="Concluir" className="text-muted-foreground hover:text-green-500">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openCompleteDialog(apt) }} title="Concluir e Registrar Pagamento" className="text-muted-foreground hover:text-green-500">
                           <CheckCircle2 className="size-4" />
                         </Button>
                         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'cancelled') }} title="Cancelar" className="text-muted-foreground hover:text-destructive">
@@ -510,6 +589,7 @@ function Appointments() {
         )}
       </div>
 
+      {/* ── Dialog de Detalhes ── */}
       <Dialog open={detailOpen} onOpenChange={(v) => (v ? setDetailOpen(true) : closeDetails())}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -524,6 +604,11 @@ function Appointments() {
                   <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${statusColors[selectedAppointment.status]}`}>
                     {statusLabels[selectedAppointment.status] ?? selectedAppointment.status}
                   </span>
+                  {selectedAppointment.status === 'completed' && selectedAppointment.payment_method && (
+                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      Pago via {PAYMENT_METHOD_LABELS[selectedAppointment.payment_method]?.label}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{selectedAppointment.barberName} · {selectedAppointment.serviceName}</p>
               </div>
@@ -556,15 +641,19 @@ function Appointments() {
                 </div>
                 <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <Clock3 className="size-3.5" /> Identificação
+                    <DollarSign className="size-3.5" /> Financeiro
                   </p>
-                  <p className="font-medium">{selectedAppointment.id.slice(0, 8).toUpperCase()}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Criado a partir da agenda operacional</p>
+                  <p className="font-medium">
+                    {selectedAppointment.price_at_booking ? `R$ ${Number(selectedAppointment.price_at_booking).toFixed(2)}` : 'A calcular'}
+                  </p>
+                  {selectedAppointment.commission_amount ? (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      Comissão barbeiro: R$ {Number(selectedAppointment.commission_amount).toFixed(2)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">Identificação: {selectedAppointment.id.slice(0, 8).toUpperCase()}</p>
+                  )}
                 </div>
-              </div>
-
-              <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
-                Este painel concentra as ações principais para que o atendimento possa ser resolvido sem sair da lista.
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -575,8 +664,8 @@ function Appointments() {
                 )}
                 {selectedAppointment.status === 'confirmed' && (
                   <>
-                    <Button onClick={() => handleStatusChange(selectedAppointment, 'completed')} className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md hover:from-green-500 hover:to-emerald-500">
-                      <CheckCircle2 className="mr-2 size-4" /> Concluir
+                    <Button onClick={() => openCompleteDialog(selectedAppointment)} className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md hover:from-green-500 hover:to-emerald-500">
+                      <CheckCircle2 className="mr-2 size-4" /> Concluir e Cobrar
                     </Button>
                     <Button variant="secondary" onClick={() => handleStatusChange(selectedAppointment, 'cancelled')}>
                       <XCircle className="mr-2 size-4" /> Cancelar
@@ -587,6 +676,106 @@ function Appointments() {
                   <Trash2 className="mr-2 size-4" /> Excluir
                 </Button>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal de Conclusão & Pagamento ── */}
+      <Dialog open={completeOpen} onOpenChange={setCompleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+                <CheckCircle2 className="size-5" />
+              </span>
+              Concluir Atendimento
+            </DialogTitle>
+          </DialogHeader>
+
+          {completingApt && (
+            <div className="space-y-4 pt-2">
+              <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-3">
+                <p className="text-xs text-muted-foreground">Cliente & Barbeiro</p>
+                <p className="font-semibold text-foreground">{completingApt.clientName} · <span className="font-normal text-muted-foreground">{completingApt.serviceName}</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5">Profissional: <strong className="text-foreground">{completingApt.barberName}</strong></p>
+              </div>
+
+              {/* Valor cobrado */}
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Valor Cobrado (R$)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
+                  <Input
+                    type="number"
+                    step="0.50"
+                    min="0"
+                    value={paidAmount}
+                    onChange={(e) => setPaidAmount(Number(e.target.value) || 0)}
+                    className="border-indigo-500/20 pl-10 text-base font-bold focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              {/* Método de Pagamento */}
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Forma de Pagamento</label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {(Object.entries(PAYMENT_METHOD_LABELS) as [PaymentMethod, { label: string; icon: typeof QrCode }][]).map(([key, { label, icon: Icon }]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setPaymentMethod(key)}
+                      className={`flex items-center gap-2 rounded-xl border p-2.5 text-xs font-medium transition-all ${
+                        paymentMethod === key
+                          ? 'border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                          : 'border-indigo-500/15 bg-card/60 text-muted-foreground hover:bg-indigo-500/5'
+                      }`}
+                    >
+                      <Icon className="size-4 shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prévia da Comissão */}
+              <div className="rounded-xl border border-dashed border-indigo-500/20 bg-muted/40 p-3.5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Taxa do Barbeiro:</span>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={barberCommissionRate}
+                      onChange={(e) => setBarberCommissionRate(Number(e.target.value) || 0)}
+                      className="h-6 w-14 text-center text-xs font-semibold"
+                    />
+                    <span className="text-muted-foreground">%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Repasse ao Barbeiro ({barberCommissionRate}%):</span>
+                  <span className="font-semibold text-amber-600 dark:text-amber-400">
+                    R$ {((paidAmount * barberCommissionRate) / 100).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
+                  <span className="font-medium text-foreground">Fica com a Barbearia:</span>
+                  <span className="font-bold text-green-600 dark:text-green-400">
+                    R$ {(paidAmount - (paidAmount * barberCommissionRate) / 100).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                onClick={confirmCompleteAppointment}
+                disabled={completing}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg hover:from-green-500 hover:to-emerald-500"
+              >
+                {completing ? 'Salvando...' : 'Confirmar e Finalizar Atendimento'}
+              </Button>
             </div>
           )}
         </DialogContent>

@@ -357,7 +357,11 @@ function Booking() {
                         <Scissors className="size-4 text-indigo-500" /> Barbeiro
                       </label>
                       <Select value={barberId} onValueChange={(v) => v && setBarberId(v)}>
-                        <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500"><SelectValue placeholder="Selecione o barbeiro" /></SelectTrigger>
+                        <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500">
+                          <SelectValue placeholder="Selecione o barbeiro">
+                            {(value) => barbers.find((b) => b.id === value)?.name ?? 'Selecione o barbeiro'}
+                          </SelectValue>
+                        </SelectTrigger>
                         <SelectContent>
                           {barbers.map((b) => (
                             <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>

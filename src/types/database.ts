@@ -25,6 +25,7 @@ export interface Barber {
   active: boolean
   notifications_enabled: boolean
   portfolio_photos: string[] | null
+  commission_rate: number | null
   created_at: string
   updated_at: string
 }
@@ -83,6 +84,8 @@ export interface Client {
   updated_at: string
 }
 
+export type PaymentMethod = 'pix' | 'credit_card' | 'debit_card' | 'cash' | 'other'
+
 export interface Appointment {
   id: string
   shop_id: string
@@ -93,6 +96,9 @@ export interface Appointment {
   end_time: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   price_at_booking: number | null
+  payment_method: PaymentMethod | null
+  commission_amount: number | null
+  paid_at: string | null
   cancel_token: string | null
   notes: string | null
   created_at: string
