@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PageTransition from '@/components/PageTransition'
-import { Settings, Save, Loader2, Upload, Trash2 } from 'lucide-react'
+import { Settings, Save, Loader2, Upload, Trash2, Star, Calendar, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { Link } from 'react-router-dom'
@@ -33,6 +33,7 @@ const shopSchema = z.object({
     .or(z.literal('')),
   address: z.string().max(200, 'Endereço muito longo').or(z.literal('')),
   logo_url: z.string().url('URL inválida').or(z.literal('')),
+  google_review_url: z.string().url('URL inválida').or(z.literal('')),
 })
 
 type ShopFormValues = z.infer<typeof shopSchema>
@@ -76,12 +77,34 @@ function ShopSettings() {
       phone: '',
       address: '',
       logo_url: '',
+      google_review_url: '',
     },
   })
 
   const { formState: { isSubmitting, isDirty }, watch, setValue } = form
   useUnsavedChanges(isDirty)
   const logoUrl = watch('logo_url')
+
+  // Google Calendar integration state
+  const [googleCalendarToken, setGoogleCalendarToken] = useState<import('@/types/database').GoogleCalendarToken | null>(null)
+  const [loadingCalendar, setLoadingCalendar] = useState(true)
+
+  async function loadGoogleCalendar() {
+    if (!shop) return
+    setLoadingCalendar(true)
+    try {
+      const { data } = await supabase
+        .from('google_calendar_tokens')
+        .select('*')
+        .eq('shop_id', shop.id)
+        .maybeSingle()
+      setGoogleCalendarToken(data as import('@/types/database').GoogleCalendarToken | null)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingCalendar(false)
+    }
+  }
 
   // Populate form when shop data is available
   useEffect(() => {
@@ -91,7 +114,9 @@ function ShopSettings() {
         phone: shop.phone ?? '',
         address: shop.address ?? '',
         logo_url: shop.logo_url ?? '',
+        google_review_url: shop.google_review_url ?? '',
       })
+      loadGoogleCalendar()
     }
   }, [shop, form])
 
@@ -105,6 +130,7 @@ function ShopSettings() {
         phone: values.phone.trim() || null,
         address: values.address.trim() || null,
         logo_url: values.logo_url.trim() || null,
+        google_review_url: values.google_review_url.trim() || null,
       })
       .eq('id', shop.id)
 
@@ -116,6 +142,34 @@ function ShopSettings() {
     form.reset(values)
     toast.success('Configurações salvas com sucesso!')
     await refreshShop()
+  }
+
+  async function toggleGoogleSync(enabled: boolean) {
+    if (!shop || !googleCalendarToken) return
+    const { error } = await supabase
+      .from('google_calendar_tokens')
+      .update({ sync_enabled: enabled })
+      .eq('shop_id', shop.id)
+    if (error) {
+      toast.error('Erro ao atualizar sincronização')
+    } else {
+      toast.success(enabled ? 'Sincronização ativada' : 'Sincronização pausada')
+      loadGoogleCalendar()
+    }
+  }
+
+  async function disconnectGoogleCalendar() {
+    if (!shop || !confirm('Deseja realmente desconectar o Google Calendar?')) return
+    const { error } = await supabase
+      .from('google_calendar_tokens')
+      .delete()
+      .eq('shop_id', shop.id)
+    if (error) {
+      toast.error('Erro ao desconectar')
+    } else {
+      toast.success('Google Calendar desconectado')
+      setGoogleCalendarToken(null)
+    }
   }
 
   async function handleLogoUpload(file: File) {
@@ -246,6 +300,30 @@ function ShopSettings() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="google_review_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5 font-semibold text-foreground">
+                        <Star className="size-4 text-amber-500 fill-amber-500" />
+                        Link de Avaliação Google (Google Meu Negócio)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: https://g.page/r/Cb7e.../review"
+                          className="border-indigo-500/20 focus:ring-indigo-500"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enviaremos este link automaticamente no WhatsApp após o atendimento ser concluído para gerar avaliações 5 estrelas.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Button
                   type="submit"
                   disabled={isSubmitting}
@@ -316,20 +394,82 @@ function ShopSettings() {
                 <p className="text-xs text-muted-foreground">
                   Formatos aceitos: JPG, PNG, WebP, SVG. Tamanho máximo: 5 MB.
                 </p>
+              </CardContent>
+            </Card>
 
-                {/* Salvar logo (só aparece quando há logo) */}
-                {logoUrl && (
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500"
-                  >
-                    {isSubmitting ? (
-                      <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</>
-                    ) : (
-                      <><Save className="mr-2 size-4" /> Salvar logo</>
-                    )}
-                  </Button>
+            {/* ── Integração Google Calendar ── */}
+            <Card className="border-indigo-500/10 lg:col-span-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <Calendar className="size-4" />
+                    </div>
+                    <div>
+                      <CardTitle>Integração Google Calendar</CardTitle>
+                      <CardDescription>Sincronize agendamentos automaticamente com sua conta do Google Agenda</CardDescription>
+                    </div>
+                  </div>
+                  {googleCalendarToken && (
+                    <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="size-3.5" /> Conectado
+                    </span>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {loadingCalendar ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="size-4 animate-spin" /> Carregando status da integração...
+                  </div>
+                ) : googleCalendarToken ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-xs">
+                      <div>
+                        <p className="font-semibold text-foreground text-sm">Google Agenda Ativa</p>
+                        <p className="text-muted-foreground mt-0.5">
+                          Agendamentos criados ou alterados serão espelhados automaticamente no seu calendário.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleGoogleSync(!googleCalendarToken.sync_enabled)}
+                        >
+                          {googleCalendarToken.sync_enabled ? 'Pausar Sincronização' : 'Ativar Sincronização'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={disconnectGoogleCalendar}
+                        >
+                          Desconectar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-dashed border-indigo-500/20 bg-indigo-500/5 p-5">
+                    <div className="space-y-1">
+                      <p className="font-semibold text-sm text-foreground">Conectar Conta Google</p>
+                      <p className="text-xs text-muted-foreground max-w-md">
+                        Conecte sua agenda para visualizar horários e compromissos diretamente no celular ou smartwatch.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        toast.info('Para ativar OAuth2 com o Google, configure as credenciais no Google Cloud Console e insira o Client ID nas variáveis de ambiente.')
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:from-blue-500 hover:to-indigo-500 shrink-0"
+                    >
+                      <Calendar className="mr-2 size-4" /> Conectar Google Agenda
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>

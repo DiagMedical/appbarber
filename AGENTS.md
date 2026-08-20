@@ -459,6 +459,12 @@ src/
 - **`src/pages/Appointments.tsx`**: Modal de conclusão de atendimento agora permite adicionar produtos balcão no checkout com cálculo automático de total e baixa de estoque.
 - **`src/pages/Reports.tsx`**: Adicionada gestão de despesas (aluguel, contas, insumos), tabela com exclusão, e cálculo do **Lucro Líquido Real Retido** (*Bruto - Comissões - Despesas*).
 
+### Sessão 36 — Avaliações Google via WhatsApp & Google Calendar Sync (2026-08-20)
+- **`supabase/migrations/20260820_add_google_review_and_calendar.sql`**: Adicionadas colunas `google_review_url` em `shops`, `google_event_id` em `appointments`, e campos `calendar_id` e `sync_enabled` em `google_calendar_tokens`.
+- **`src/pages/ShopSettings.tsx`**: Adicionado campo para link de avaliação do Google Meu Negócio e card de conexão/gerenciamento do Google Calendar.
+- **`src/pages/Appointments.tsx`**: Mensagem de WhatsApp pós-atendimento agora inclui automaticamente o link de avaliação 5 estrelas no Google.
+- **`src/lib/google-calendar.ts`**: Criado utilitário para espelhamento e sincronização de eventos com a API do Google Agenda.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

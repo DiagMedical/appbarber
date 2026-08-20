@@ -11,6 +11,7 @@ export interface Shop {
   working_hours: Record<string, string> | null
   gallery_photos: string[] | null
   hero_photo: string | null
+  google_review_url: string | null
   created_at: string
   updated_at: string
 }
@@ -100,6 +101,7 @@ export interface Appointment {
   commission_amount: number | null
   paid_at: string | null
   cancel_token: string | null
+  google_event_id: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -134,6 +136,8 @@ export interface GoogleCalendarToken {
   access_token: string | null
   refresh_token: string | null
   expires_at: string | null
+  calendar_id: string | null
+  sync_enabled: boolean
   created_at: string
   updated_at: string
 }

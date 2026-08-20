@@ -391,7 +391,13 @@ function Appointments() {
       toast.success('Atendimento concluído e registrado com sucesso!')
 
       if (completingApt.clientPhone) {
-        const msg = `✅ *AppBarber*\n\nSeu agendamento foi concluído! Obrigado pela preferência.`
+        let msg = `✅ *${shop.name || 'AppBarber'} — Atendimento Concluído*\n\nOlá *${completingApt.clientName}*, seu atendimento com *${completingApt.barberName}* foi concluído com sucesso!`
+
+        if (shop.google_review_url) {
+          msg += `\n\n⭐ *Poderia nos avaliar com 5 estrelas no Google?*\nLeva menos de 1 minuto e nos ajuda muito:\n${shop.google_review_url}`
+        }
+
+        msg += `\n\nMuito obrigado pela preferência e até a próxima!`
         const sent = await sendText({ number: completingApt.clientPhone, text: msg, shopId: shop.id })
         if (!sent) console.log('WhatsApp não enviado')
       }
