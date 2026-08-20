@@ -451,6 +451,14 @@ src/
 - **`src/pages/Barbers.tsx`**: Adicionado botão e modal completo para criar/remover bloqueios e folgas pontuais por data e faixa horária.
 - **`src/pages/Dashboard.tsx`**: Agenda Semanal agora plota os blocos de indisponibilidade (`🔒 [Motivo]`) com estilo discreto.
 
+### Sessão 35 — PDV de Produtos Balcão & Gestão de Despesas da Barbearia (2026-08-20)
+- **`supabase/migrations/20260820_add_products_and_expenses.sql`**: Criadas tabelas `products`, `appointment_products` e `expenses` com RLS e índices.
+- **`src/types/database.ts`**: Adicionados os tipos `Product`, `AppointmentProduct`, `Expense` e tabelas no schema.
+- **`src/pages/Products.tsx`**: Criada nova tela de produtos balcão (pomadas, bebidas, óleos) com gestão de preço de custo, venda, estoque, filtros e métricas.
+- **`src/App.tsx` + `src/components/AppLayout.tsx`**: Rota `/products` e item "Produtos" (ícone Package) adicionados à barra de navegação.
+- **`src/pages/Appointments.tsx`**: Modal de conclusão de atendimento agora permite adicionar produtos balcão no checkout com cálculo automático de total e baixa de estoque.
+- **`src/pages/Reports.tsx`**: Adicionada gestão de despesas (aluguel, contas, insumos), tabela com exclusão, e cálculo do **Lucro Líquido Real Retido** (*Bruto - Comissões - Despesas*).
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

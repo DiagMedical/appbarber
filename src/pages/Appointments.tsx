@@ -9,13 +9,13 @@ import { Pagination } from '@/components/Pagination'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
 import { usePagination } from '@/hooks/usePagination'
-import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, ArrowRight, DollarSign, CreditCard, Banknote, QrCode, Wallet } from 'lucide-react'
+import { Check, CheckCircle2, XCircle, Calendar, Plus, Trash2, Phone, User, Scissors, CalendarDays, ArrowRight, DollarSign, CreditCard, Banknote, QrCode, Wallet, Package, Minus } from 'lucide-react'
 import { toast } from 'sonner'
 import { sendText } from '@/lib/evolution'
 import { endOfUTC3DayISO, formatDateTime, formatTime, getUTC3DateKey, startOfUTC3DayISO } from '@/lib/timezone'
 import { getAvailableSlots } from '@/lib/availability'
 import { useAuth } from '@/providers/AuthProvider'
-import type { Appointment, Barber, Service, PaymentMethod } from '@/types/database'
+import type { Appointment, Barber, Service, PaymentMethod, Product } from '@/types/database'
 
 type AppointmentItem = Appointment & {
   barberName: string
@@ -65,6 +65,8 @@ function Appointments() {
   const [paidAmount, setPaidAmount] = useState<number>(0)
   const [barberCommissionRate, setBarberCommissionRate] = useState<number>(50)
   const [completing, setCompleting] = useState(false)
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([])
+  const [checkoutProducts, setCheckoutProducts] = useState<Array<{ product: Product; quantity: number }>>([])
 
   const [barberId, setBarberId] = useState('')
   const [serviceIds, setServiceIds] = useState<string[]>([])
@@ -290,7 +292,7 @@ function Appointments() {
     }
   }
 
-  function openCompleteDialog(apt: AppointmentItem) {
+  async function openCompleteDialog(apt: AppointmentItem) {
     const barber = barbers.find((b) => b.id === apt.barber_id)
     const rate = barber?.commission_rate ?? 50
     const price = apt.price_at_booking ?? services.find((s) => s.id === apt.service_id)?.price ?? 0
@@ -299,7 +301,54 @@ function Appointments() {
     setPaidAmount(price)
     setBarberCommissionRate(rate)
     setPaymentMethod('pix')
+    setCheckoutProducts([])
+
+    if (shop) {
+      const { data: prods } = await supabase
+        .from('products')
+        .select('*')
+        .eq('shop_id', shop.id)
+        .eq('active', true)
+        .order('name')
+      setAvailableProducts((prods as Product[]) ?? [])
+    }
+
     setCompleteOpen(true)
+  }
+
+  function addProductToCheckout(product: Product) {
+    setCheckoutProducts((prev) => {
+      const exists = prev.find((p) => p.product.id === product.id)
+      let next: Array<{ product: Product; quantity: number }>
+      if (exists) {
+        next = prev.map((p) => p.product.id === product.id ? { ...p, quantity: p.quantity + 1 } : p)
+      } else {
+        next = [...prev, { product, quantity: 1 }]
+      }
+      recalculateTotal(next)
+      return next
+    })
+  }
+
+  function removeProductFromCheckout(productId: string) {
+    setCheckoutProducts((prev) => {
+      const exists = prev.find((p) => p.product.id === productId)
+      let next: Array<{ product: Product; quantity: number }>
+      if (exists && exists.quantity > 1) {
+        next = prev.map((p) => p.product.id === productId ? { ...p, quantity: p.quantity - 1 } : p)
+      } else {
+        next = prev.filter((p) => p.product.id !== productId)
+      }
+      recalculateTotal(next)
+      return next
+    })
+  }
+
+  function recalculateTotal(prods: Array<{ product: Product; quantity: number }>) {
+    if (!completingApt) return
+    const servicePrice = completingApt.price_at_booking ?? services.find((s) => s.id === completingApt.service_id)?.price ?? 0
+    const productsTotal = prods.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+    setPaidAmount(servicePrice + productsTotal)
   }
 
   async function confirmCompleteAppointment() {
@@ -317,6 +366,27 @@ function Appointments() {
       }).eq('id', completingApt.id)
 
       if (error) throw error
+
+      // Salva itens de produtos no banco se houver
+      if (checkoutProducts.length > 0) {
+        const prodRows = checkoutProducts.map((cp) => ({
+          appointment_id: completingApt.id,
+          product_id: cp.product.id,
+          quantity: cp.quantity,
+          unit_price: cp.product.price,
+        }))
+        await supabase.from('appointment_products').insert(prodRows)
+
+        // Atualiza estoque
+        for (const cp of checkoutProducts) {
+          if (cp.product.stock_quantity !== null && cp.product.stock_quantity > 0) {
+            await supabase
+              .from('products')
+              .update({ stock_quantity: Math.max(0, cp.product.stock_quantity - cp.quantity) })
+              .eq('id', cp.product.id)
+          }
+        }
+      }
 
       toast.success('Atendimento concluído e registrado com sucesso!')
 
@@ -701,9 +771,93 @@ function Appointments() {
                 <p className="text-xs text-muted-foreground mt-0.5">Profissional: <strong className="text-foreground">{completingApt.barberName}</strong></p>
               </div>
 
-              {/* Valor cobrado */}
+              {/* Seção de Venda de Produtos */}
+              <div className="rounded-xl border border-indigo-500/15 bg-card/60 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
+                    <Package className="size-3.5 text-indigo-500" />
+                    Produtos Balcão (Opcional)
+                  </label>
+                  {checkoutProducts.length > 0 && (
+                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                      + R$ {checkoutProducts.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Seleção rápida de produtos */}
+                {availableProducts.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground">Nenhum produto cadastrado no menu Produtos.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableProducts.map((prod) => {
+                      const inCart = checkoutProducts.find((p) => p.product.id === prod.id)
+                      return (
+                        <button
+                          key={prod.id}
+                          type="button"
+                          onClick={() => addProductToCheckout(prod)}
+                          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-all ${
+                            inCart
+                              ? 'border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold'
+                              : 'border-indigo-500/15 bg-background text-foreground hover:bg-indigo-500/5'
+                          }`}
+                        >
+                          <span>{prod.name}</span>
+                          <span className="text-[10px] text-muted-foreground">R$ {Number(prod.price).toFixed(2)}</span>
+                          {inCart && (
+                            <span className="rounded-full bg-indigo-600 text-white text-[10px] size-4 flex items-center justify-center font-bold">
+                              {inCart.quantity}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Itens adicionados ao checkout */}
+                {checkoutProducts.length > 0 && (
+                  <div className="space-y-1.5 border-t border-border/50 pt-2">
+                    {checkoutProducts.map((cp) => (
+                      <div key={cp.product.id} className="flex items-center justify-between text-xs">
+                        <span className="truncate max-w-[180px] font-medium">{cp.product.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">
+                            R$ {(cp.product.price * cp.quantity).toFixed(2)}
+                          </span>
+                          <div className="flex items-center gap-1 bg-muted/60 rounded-md p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => removeProductFromCheckout(cp.product.id)}
+                              className="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-background"
+                            >
+                              <Minus className="size-3" />
+                            </button>
+                            <span className="w-4 text-center font-bold text-[11px]">{cp.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => addProductToCheckout(cp.product)}
+                              className="size-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-background"
+                            >
+                              <Plus className="size-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Valor Total Cobrado */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Valor Cobrado (R$)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold uppercase text-muted-foreground">Valor Total Cobrado (R$)</label>
+                  {checkoutProducts.length > 0 && (
+                    <span className="text-[11px] text-muted-foreground">Serviço + Produtos</span>
+                  )}
+                </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">R$</span>
                   <Input

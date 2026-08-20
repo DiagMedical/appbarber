@@ -7,12 +7,13 @@ import { buildPublicSiteUrl } from '@/lib/site'
 import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus'
 
 import { Loader2 } from 'lucide-react'
-import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings, ShieldCheck } from 'lucide-react'
+import { Sun, Moon, LogOut, Scissors, Calendar, Users, LayoutDashboard, MessageSquare, Menu, X, Contact, BarChart3, Globe, Settings, ShieldCheck, Package } from 'lucide-react'
 
 const baseNavItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/barbers', label: 'Barbeiros', icon: Users },
   { href: '/services', label: 'Serviços', icon: Scissors },
+  { href: '/products', label: 'Produtos', icon: Package },
   { href: '/clients', label: 'Clientes', icon: Contact },
   { href: '/appointments', label: 'Agendamentos', icon: Calendar },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },

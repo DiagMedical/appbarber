@@ -9,6 +9,7 @@ const Login = lazy(() => import('@/pages/Login'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Barbers = lazy(() => import('@/pages/Barbers'))
 const Services = lazy(() => import('@/pages/Services'))
+const Products = lazy(() => import('@/pages/Products'))
 const Appointments = lazy(() => import('@/pages/Appointments'))
 const Booking = lazy(() => import('@/pages/Booking'))
 const Clients = lazy(() => import('@/pages/Clients'))
@@ -69,6 +70,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/barbers" element={<Barbers />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/products" element={<Products />} />
               <Route path="/clients" element={<Clients />} />
               <Route path="/appointments" element={<Appointments />} />
               <Route path="/whatsapp" element={<WhatsAppSettings />} />

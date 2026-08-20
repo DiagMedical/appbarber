@@ -3,10 +3,14 @@ import { supabase } from '@/lib/supabase'
 import PageTransition from '@/components/PageTransition'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BarChart3, TrendingUp, DollarSign, Scissors, Users, Calendar, Sparkles, Wallet, QrCode, CreditCard, Banknote, Landmark } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { BarChart3, TrendingUp, DollarSign, Users, Calendar, Sparkles, Wallet, QrCode, CreditCard, Banknote, Landmark, Receipt, TrendingDown, Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
-import { getUTC3DateParts, getUTC3MonthKey, startOfUTC3MonthISO } from '@/lib/timezone'
-import type { PaymentMethod } from '@/types/database'
+import { getUTC3DateParts, getUTC3MonthKey, getUTC3DateKey, startOfUTC3MonthISO } from '@/lib/timezone'
+import { toast } from 'sonner'
+import type { PaymentMethod, Expense } from '@/types/database'
 
 interface BarberStats {
   id: string
@@ -41,6 +45,15 @@ const PERIOD_LABELS: Record<string, string> = {
   year: 'Este ano',
 }
 
+const EXPENSE_CATEGORIES: Record<string, string> = {
+  aluguel: 'Aluguel & Condomínio',
+  produtos: 'Produtos & Insumos',
+  energia_agua: 'Energia, Água & Internet',
+  manutencao: 'Manutenção & Limpeza',
+  marketing: 'Marketing & Divulgação',
+  outros: 'Outros',
+}
+
 const PAYMENT_LABELS: Record<string, { label: string; icon: typeof QrCode }> = {
   pix: { label: 'Pix', icon: QrCode },
   credit_card: { label: 'Cartão de Crédito', icon: CreditCard },
@@ -55,14 +68,25 @@ function Reports() {
   const [barberStats, setBarberStats] = useState<BarberStats[]>([])
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([])
   const [paymentStats, setPaymentStats] = useState<PaymentStats[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [period, setPeriod] = useState('month')
   const [loading, setLoading] = useState(true)
+
+  // Modal de Despesas
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false)
+  const [newExpenseCategory, setNewExpenseCategory] = useState('produtos')
+  const [newExpenseDesc, setNewExpenseDesc] = useState('')
+  const [newExpenseAmount, setNewExpenseAmount] = useState('')
+  const [newExpenseDate, setNewExpenseDate] = useState(() => getUTC3DateKey())
+  const [savingExpense, setSavingExpense] = useState(false)
+
   const [summary, setSummary] = useState({
     total: 0,
     completed: 0,
     cancelled: 0,
     grossRevenue: 0,
     totalCommissions: 0,
+    totalExpenses: 0,
     netRevenue: 0,
     avgTicket: 0,
   })
@@ -81,7 +105,8 @@ function Reports() {
         setBarberStats([])
         setMonthlyStats([])
         setPaymentStats([])
-        setSummary({ total: 0, completed: 0, cancelled: 0, grossRevenue: 0, totalCommissions: 0, netRevenue: 0, avgTicket: 0 })
+        setExpenses([])
+        setSummary({ total: 0, completed: 0, cancelled: 0, grossRevenue: 0, totalCommissions: 0, totalExpenses: 0, netRevenue: 0, avgTicket: 0 })
         return
       }
       const now = new Date()
@@ -93,7 +118,9 @@ function Reports() {
             ? startOfUTC3MonthISO(now, 2)
             : startOfUTC3MonthISO(now, month - 1)
 
-      const [barbersRes, aptsRes, servicesRes] = await Promise.all([
+      const startDateKey = startDateIso.split('T')[0]
+
+      const [barbersRes, aptsRes, servicesRes, expensesRes] = await Promise.all([
         supabase.from('barbers').select('id, name, commission_rate').eq('shop_id', shop.id).order('name'),
         supabase.from('appointments').select('*')
           .eq('shop_id', shop.id)
@@ -101,6 +128,10 @@ function Reports() {
           .lte('start_time', now.toISOString())
           .neq('status', 'pending'),
         supabase.from('services').select('id, name, price').eq('shop_id', shop.id),
+        supabase.from('expenses').select('*')
+          .eq('shop_id', shop.id)
+          .gte('expense_date', startDateKey)
+          .order('expense_date', { ascending: false }),
       ])
 
       const barbers = (barbersRes.data ?? []) as { id: string; name: string; commission_rate: number | null }[]
@@ -115,6 +146,10 @@ function Reports() {
         commission_amount: number | null
       }>
       const services = (servicesRes.data ?? []) as { id: string; name: string; price: number }[]
+      const loadedExpenses = (expensesRes.data ?? []) as Expense[]
+      setExpenses(loadedExpenses)
+
+      const totalExpensesCalculated = loadedExpenses.reduce((acc, e) => acc + Number(e.amount), 0)
 
       const servicePriceMap = new Map(services.map((s) => [s.id, Number(s.price)]))
       const barberMap = new Map(barbers.map((b) => [b.id, b]))
@@ -150,7 +185,8 @@ function Reports() {
         cancelled: cancelledApts.length,
         grossRevenue: totalGrossRevenue,
         totalCommissions: totalCommissionsCalculated,
-        netRevenue: totalGrossRevenue - totalCommissionsCalculated,
+        totalExpenses: totalExpensesCalculated,
+        netRevenue: totalGrossRevenue - totalCommissionsCalculated - totalExpensesCalculated,
         avgTicket: completedApts.length > 0 ? Math.round(totalGrossRevenue / completedApts.length) : 0,
       })
 
@@ -228,6 +264,50 @@ function Reports() {
     }
   }
 
+  async function handleAddExpense() {
+    if (!shop) return
+    if (!newExpenseDesc.trim() || !newExpenseAmount || parseFloat(newExpenseAmount) <= 0) {
+      toast.error('Informe descrição e valor válido da despesa')
+      return
+    }
+    setSavingExpense(true)
+    try {
+      const { error } = await supabase.from('expenses').insert({
+        shop_id: shop.id,
+        category: newExpenseCategory,
+        description: newExpenseDesc.trim(),
+        amount: parseFloat(newExpenseAmount),
+        expense_date: newExpenseDate,
+      })
+
+      if (error) throw error
+
+      toast.success('Despesa registrada com sucesso!')
+      setNewExpenseDesc('')
+      setNewExpenseAmount('')
+      setExpenseModalOpen(false)
+      load()
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao salvar despesa')
+    } finally {
+      setSavingExpense(false)
+    }
+  }
+
+  async function handleRemoveExpense(id: string) {
+    if (!confirm('Deseja realmente excluir esta despesa?')) return
+    try {
+      const { error } = await supabase.from('expenses').delete().eq('id', id)
+      if (error) throw error
+      toast.success('Despesa removida')
+      load()
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao excluir despesa')
+    }
+  }
+
   const maxRevenue = Math.max(...monthlyStats.map((m) => m.revenue), 1)
   const periodLabel = PERIOD_LABELS[period] ?? 'Período'
 
@@ -278,68 +358,68 @@ function Reports() {
         ) : (
           <div className="space-y-6">
             {/* ── Cards de Métricas Principais ── */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <Card className="border-indigo-500/10">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
+                <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
                     <Calendar className="size-5" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Agendamentos</p>
-                    <p className="text-2xl font-bold">{summary.total}</p>
+                    <p className="text-xl sm:text-2xl font-bold">{summary.total}</p>
                     <p className="text-[11px] text-muted-foreground">{summary.completed} concluídos</p>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="border-emerald-500/10 bg-emerald-500/5">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+                <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
                     <DollarSign className="size-5" />
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Faturamento Bruto</p>
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{currency.format(summary.grossRevenue)}</p>
-                    <p className="text-[11px] text-muted-foreground">Total recebido</p>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{currency.format(summary.grossRevenue)}</p>
+                    <p className="text-[11px] text-muted-foreground">Serviços e Produtos</p>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="border-amber-500/10 bg-amber-500/5">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md">
+                <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md">
                     <Wallet className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Comissões a Pagar</p>
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{currency.format(summary.totalCommissions)}</p>
+                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Comissões</p>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">{currency.format(summary.totalCommissions)}</p>
                     <p className="text-[11px] text-muted-foreground">Repasse aos barbeiros</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-green-500/10 bg-green-500/5">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white shadow-md">
-                    <TrendingUp className="size-5" />
+              <Card className="border-rose-500/10 bg-rose-500/5">
+                <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md">
+                    <TrendingDown className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-green-600 dark:text-green-400">Lucro Líquido</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{currency.format(summary.netRevenue)}</p>
-                    <p className="text-[11px] text-muted-foreground">Retido pela barbearia</p>
+                    <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">Despesas da Loja</p>
+                    <p className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400">{currency.format(summary.totalExpenses)}</p>
+                    <p className="text-[11px] text-muted-foreground">{expenses.length} lançamentos</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-violet-500/10">
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md">
-                    <Scissors className="size-5" />
+              <Card className="border-green-500/10 bg-green-500/10">
+                <CardContent className="flex items-center gap-3 p-4 sm:p-5">
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white shadow-md">
+                    <TrendingUp className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Ticket Médio</p>
-                    <p className="text-2xl font-bold">{currency.format(summary.avgTicket)}</p>
-                    <p className="text-[11px] text-muted-foreground">Por atendimento</p>
+                    <p className="text-xs font-semibold text-green-600 dark:text-green-400">Lucro Líquido Real</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{currency.format(summary.netRevenue)}</p>
+                    <p className="text-[11px] text-muted-foreground">Retido pela barbearia</p>
                   </div>
                 </CardContent>
               </Card>
@@ -403,6 +483,92 @@ function Reports() {
                           <td className="pt-3 text-right">{currency.format(summary.grossRevenue)}</td>
                           <td className="pt-3 text-right text-amber-600 dark:text-amber-400">{currency.format(summary.totalCommissions)}</td>
                           <td className="pt-3 text-right text-green-600 dark:text-green-400">{currency.format(summary.netRevenue)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ── Despesas & Saídas da Barbearia ── */}
+            <Card className="border-rose-500/15">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <div className="flex items-center gap-2">
+                  <Receipt className="size-5 text-rose-500" />
+                  <div>
+                    <CardTitle className="text-base">Despesas & Custos da Barbearia</CardTitle>
+                    <p className="text-xs text-muted-foreground">Aluguel, produtos, contas e manutenção no período</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setExpenseModalOpen(true)}
+                  className="bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-sm hover:from-rose-500 hover:to-red-500"
+                >
+                  <Plus className="mr-1.5 size-4" /> Nova Despesa
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {expenses.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center text-sm text-muted-foreground border border-dashed border-rose-500/15 rounded-xl bg-rose-500/5">
+                    <p>Nenhuma despesa lançada neste período.</p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() => setExpenseModalOpen(true)}
+                      className="text-rose-600 dark:text-rose-400 mt-1"
+                    >
+                      + Lançar primeira despesa
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-indigo-500/10 text-xs uppercase text-muted-foreground">
+                          <th className="pb-3 font-semibold">Data</th>
+                          <th className="pb-3 font-semibold">Categoria</th>
+                          <th className="pb-3 font-semibold">Descrição</th>
+                          <th className="pb-3 text-right font-semibold">Valor</th>
+                          <th className="pb-3 text-right font-semibold">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-indigo-500/10">
+                        {expenses.map((exp) => (
+                          <tr key={exp.id} className="transition-colors hover:bg-rose-500/5">
+                            <td className="py-3 text-xs text-muted-foreground">
+                              {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short' }).format(new Date(`${exp.expense_date}T12:00:00-03:00`))}
+                            </td>
+                            <td className="py-3">
+                              <span className="rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                                {EXPENSE_CATEGORIES[exp.category] ?? exp.category}
+                              </span>
+                            </td>
+                            <td className="py-3 font-medium text-foreground">{exp.description}</td>
+                            <td className="py-3 text-right font-bold text-rose-600 dark:text-rose-400">
+                              - {currency.format(exp.amount)}
+                            </td>
+                            <td className="py-3 text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveExpense(exp.id)}
+                                className="size-7 text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-rose-500/20 font-bold">
+                          <td colSpan={3} className="pt-3">Total de Despesas</td>
+                          <td className="pt-3 text-right text-rose-600 dark:text-rose-400">
+                            - {currency.format(summary.totalExpenses)}
+                          </td>
+                          <td />
                         </tr>
                       </tfoot>
                     </table>
@@ -516,16 +682,87 @@ function Reports() {
                   <p className="text-xs text-muted-foreground mt-1">Faltas e desistências</p>
                 </div>
                 <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Margem de Retenção da Loja</p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Margem de Retenção Real</p>
                   <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
                     {summary.grossRevenue > 0 ? Math.round((summary.netRevenue / summary.grossRevenue) * 100) : 0}%
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Percentual retido pós-comissão</p>
+                  <p className="text-xs text-muted-foreground mt-1">Percentual retido pós-comissão e despesas</p>
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
+
+        {/* ── Modal de Nova Despesa ── */}
+        <Dialog open={expenseModalOpen} onOpenChange={setExpenseModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="size-5 text-rose-500" />
+                Lançar Despesa / Saída de Caixa
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground mb-1 block">Categoria</label>
+                <Select value={newExpenseCategory} onValueChange={(v) => v && setNewExpenseCategory(v)}>
+                  <SelectTrigger className="border-indigo-500/20">
+                    <SelectValue placeholder="Selecione a categoria">
+                      {(value) => EXPENSE_CATEGORIES[value as string] ?? 'Categoria'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground mb-1 block">Descrição da Despesa *</label>
+                <Input
+                  placeholder="Ex: Conta de luz, Compra de pomadas, Aluguel"
+                  value={newExpenseDesc}
+                  onChange={(e) => setNewExpenseDesc(e.target.value)}
+                  className="border-indigo-500/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Valor (R$) *</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="150.00"
+                    value={newExpenseAmount}
+                    onChange={(e) => setNewExpenseAmount(e.target.value)}
+                    className="border-indigo-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1 block">Data do Pagamento</label>
+                  <Input
+                    type="date"
+                    value={newExpenseDate}
+                    onChange={(e) => setNewExpenseDate(e.target.value)}
+                    className="border-indigo-500/20"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleAddExpense}
+                disabled={savingExpense}
+                className="w-full bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md hover:from-rose-500 hover:to-red-500"
+              >
+                {savingExpense ? 'Salvando...' : 'Salvar Despesa'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageTransition>
   )
