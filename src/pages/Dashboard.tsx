@@ -120,6 +120,7 @@ const statusColors: Record<string, string> = {
   confirmed: 'border-l-indigo-500 bg-indigo-500/10',
   completed: 'border-l-green-500 bg-green-500/10',
   cancelled: 'border-l-red-500 bg-red-500/10 opacity-50',
+  blocked: 'border-l-gray-500 bg-gray-500/20 text-muted-foreground',
 }
 
 const statusLabels: Record<string, string> = {
@@ -127,6 +128,7 @@ const statusLabels: Record<string, string> = {
   confirmed: 'Confirmado',
   cancelled: 'Cancelado',
   completed: 'Concluído',
+  blocked: 'Bloqueado',
 }
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 8)
@@ -375,22 +377,32 @@ function Dashboard() {
         .neq('status', 'cancelled')
         .order('start_time')
 
-      const { data: apts } = await query
-      const raw = (apts ?? []) as Array<{ id: string; barber_id: string; client_id: string; service_id: string; start_time: string; end_time: string; status: string }>
+      const [aptsRes, blocksRes] = await Promise.all([
+        query,
+        supabase
+          .from('barber_blocks')
+          .select('*')
+          .eq('shop_id', activeShop.id)
+          .gte('end_time', startOfUTC3DayISO(weekStartKey))
+          .lte('start_time', endOfUTC3DayISO(weekEndKey)),
+      ])
 
-      if (raw.length === 0) {
+      const raw = (aptsRes.data ?? []) as Array<{ id: string; barber_id: string; client_id: string; service_id: string; start_time: string; end_time: string; status: string }>
+      const rawBlocks = (blocksRes.data ?? []) as Array<{ id: string; barber_id: string; reason: string; start_time: string; end_time: string }>
+
+      if (raw.length === 0 && rawBlocks.length === 0) {
         setSchedule([])
         return
       }
 
-      const barberIds = [...new Set(raw.map((a) => a.barber_id))]
+      const barberIds = [...new Set([...raw.map((a) => a.barber_id), ...rawBlocks.map((b) => b.barber_id)])]
       const clientIds = [...new Set(raw.map((a) => a.client_id))]
       const serviceIds = [...new Set(raw.map((a) => a.service_id))]
 
       const [barbersR, clientsR, servicesR] = await Promise.all([
-        supabase.from('barbers').select('id, name').eq('shop_id', activeShop.id).in('id', barberIds),
-        supabase.from('clients').select('id, name').eq('shop_id', activeShop.id).in('id', clientIds),
-        supabase.from('services').select('id, name').eq('shop_id', activeShop.id).in('id', serviceIds),
+        barberIds.length ? supabase.from('barbers').select('id, name').eq('shop_id', activeShop.id).in('id', barberIds) : Promise.resolve({ data: [] }),
+        clientIds.length ? supabase.from('clients').select('id, name').eq('shop_id', activeShop.id).in('id', clientIds) : Promise.resolve({ data: [] }),
+        serviceIds.length ? supabase.from('services').select('id, name').eq('shop_id', activeShop.id).in('id', serviceIds) : Promise.resolve({ data: [] }),
       ])
 
       const bMap = new Map((barbersR.data ?? []).map((b: { id: string; name: string }) => [b.id, b.name]))
@@ -422,16 +434,30 @@ function Dashboard() {
         }
       }
 
-      setSchedule(raw.map((a) => ({
-        id: a.id,
-        barber_id: a.barber_id,
-        barber_name: bMap.get(a.barber_id) ?? '?',
-        client_name: cMap.get(a.client_id) ?? '?',
-        service_name: multiSvcMap.get(a.id) ?? sMap.get(a.service_id) ?? '?',
-        start_time: a.start_time,
-        end_time: a.end_time,
-        status: a.status,
-      })))
+      const scheduleItems = [
+        ...raw.map((a) => ({
+          id: a.id,
+          barber_id: a.barber_id,
+          barber_name: bMap.get(a.barber_id) ?? '?',
+          client_name: cMap.get(a.client_id) ?? '?',
+          service_name: multiSvcMap.get(a.id) ?? sMap.get(a.service_id) ?? '?',
+          start_time: a.start_time,
+          end_time: a.end_time,
+          status: a.status,
+        })),
+        ...rawBlocks.map((blk) => ({
+          id: blk.id,
+          barber_id: blk.barber_id,
+          barber_name: bMap.get(blk.barber_id) ?? '?',
+          client_name: `🔒 ${blk.reason || 'Indisponível'}`,
+          service_name: 'Bloqueio de Horário',
+          start_time: blk.start_time,
+          end_time: blk.end_time,
+          status: 'blocked',
+        })),
+      ]
+
+      setSchedule(scheduleItems)
     }
 
     loadSchedule()

@@ -18,12 +18,13 @@ import {
 } from '@/components/ui/form'
 import { ListSkeleton } from '@/components/Skeleton'
 import PageTransition from '@/components/PageTransition'
-import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2, Upload } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Clock, Search, Filter, Loader2, Upload, CalendarOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/providers/AuthProvider'
 import { useBarberPush } from '@/hooks/useBarberPush'
 import { ensureGalleryBucket, uploadBarberPhoto, uploadBarberPortfolioPhoto, deletePhoto } from '@/lib/storage'
-import type { Barber, BarberAvailability } from '@/types/database'
+import { formatDateTime, getUTC3DateKey } from '@/lib/timezone'
+import type { Barber, BarberAvailability, BarberBlock } from '@/types/database'
 
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -60,6 +61,16 @@ function Barbers() {
   const [availOpen, setAvailOpen] = useState(false)
   const [availBarber, setAvailBarber] = useState<Barber | null>(null)
   const [availData, setAvailData] = useState<Record<number, { on: boolean; start: string; end: string }>>({})
+
+  // Bloqueios de Horários / Ausências
+  const [blockOpen, setBlockOpen] = useState(false)
+  const [blockBarber, setBlockBarber] = useState<Barber | null>(null)
+  const [blocksList, setBlocksList] = useState<BarberBlock[]>([])
+  const [blockDate, setBlockDate] = useState(() => getUTC3DateKey())
+  const [blockStartTime, setBlockStartTime] = useState('14:00')
+  const [blockEndTime, setBlockEndTime] = useState('17:00')
+  const [blockReason, setBlockReason] = useState('Indisponível / Folga')
+  const [savingBlock, setSavingBlock] = useState(false)
 
   const [newPortfolioPhotos, setNewPortfolioPhotos] = useState<string[]>([])
   // ID temporário único para cada formulário NOVO — usado no path de upload
@@ -231,6 +242,72 @@ function Barbers() {
     toast.success('Horários salvos!')
     setAvailOpen(false)
     load()
+  }
+
+  async function openBlocks(barber: Barber) {
+    setBlockBarber(barber)
+    setBlockDate(getUTC3DateKey())
+    setBlockStartTime('14:00')
+    setBlockEndTime('17:00')
+    setBlockReason('Indisponível / Folga')
+    await loadBlocks(barber.id)
+    setBlockOpen(true)
+  }
+
+  async function loadBlocks(barberId: string) {
+    const { data } = await supabase
+      .from('barber_blocks')
+      .select('*')
+      .eq('barber_id', barberId)
+      .order('start_time', { ascending: true })
+    if (data) setBlocksList(data as BarberBlock[])
+  }
+
+  async function saveBlock() {
+    if (!shop || !blockBarber) return
+    if (!blockDate || !blockStartTime || !blockEndTime) {
+      toast.error('Preencha data e horários')
+      return
+    }
+    if (blockStartTime >= blockEndTime) {
+      toast.error('O horário de término deve ser após o horário de início')
+      return
+    }
+    setSavingBlock(true)
+    try {
+      const startIso = new Date(`${blockDate}T${blockStartTime}:00-03:00`).toISOString()
+      const endIso = new Date(`${blockDate}T${blockEndTime}:00-03:00`).toISOString()
+
+      const { error } = await supabase.from('barber_blocks').insert({
+        shop_id: shop.id,
+        barber_id: blockBarber.id,
+        reason: blockReason.trim() || 'Indisponível',
+        start_time: startIso,
+        end_time: endIso,
+      })
+
+      if (error) throw error
+
+      toast.success('Horário bloqueado com sucesso!')
+      await loadBlocks(blockBarber.id)
+      setBlockReason('Indisponível / Folga')
+    } catch (err) {
+      toast.error('Erro ao salvar bloqueio')
+      console.error(err)
+    } finally {
+      setSavingBlock(false)
+    }
+  }
+
+  async function removeBlock(id: string) {
+    if (!blockBarber) return
+    const { error } = await supabase.from('barber_blocks').delete().eq('id', id)
+    if (error) {
+      toast.error('Erro ao remover bloqueio')
+    } else {
+      toast.success('Bloqueio removido')
+      loadBlocks(blockBarber.id)
+    }
   }
 
   return (
@@ -533,8 +610,11 @@ function Barbers() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openAvail(barber)} title="Horários" className="text-muted-foreground hover:text-indigo-600">
+                    <Button variant="ghost" size="icon" onClick={() => openAvail(barber)} title="Horários Semanais" className="text-muted-foreground hover:text-indigo-600">
                       <Clock className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openBlocks(barber)} title="Bloqueios & Folgas Pontuais" className="text-muted-foreground hover:text-amber-600">
+                      <CalendarOff className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => edit(barber)} className="text-muted-foreground hover:text-indigo-600">
                       <Pencil className="size-4" />
@@ -549,10 +629,11 @@ function Barbers() {
           </div>
         )}
 
+        {/* ── Dialog de Horários Semanais ── */}
         <Dialog open={availOpen} onOpenChange={setAvailOpen}>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Horários — {availBarber?.name}</DialogTitle>
+              <DialogTitle>Horários Semanais — {availBarber?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               {DAYS.map((day, d) => {
@@ -576,6 +657,102 @@ function Barbers() {
               })}
             </div>
             <Button onClick={saveAvail} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar Horários</Button>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Dialog de Bloqueios Pontuais / Folgas ── */}
+        <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CalendarOff className="size-5 text-amber-500" />
+                Bloqueios & Folgas — {blockBarber?.name}
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 pt-2">
+              {/* Formulário de Novo Bloqueio */}
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                <p className="text-xs font-semibold uppercase text-amber-700 dark:text-amber-300">Novo Bloqueio de Horário</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[11px] text-muted-foreground">Data</label>
+                    <Input
+                      type="date"
+                      value={blockDate}
+                      onChange={(e) => setBlockDate(e.target.value)}
+                      className="border-indigo-500/20 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-muted-foreground">Início</label>
+                    <Input
+                      type="time"
+                      value={blockStartTime}
+                      onChange={(e) => setBlockStartTime(e.target.value)}
+                      className="border-indigo-500/20 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-muted-foreground">Término</label>
+                    <Input
+                      type="time"
+                      value={blockEndTime}
+                      onChange={(e) => setBlockEndTime(e.target.value)}
+                      className="border-indigo-500/20 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] text-muted-foreground">Motivo / Título (ex: Consulta médica, Folga)</label>
+                  <Input
+                    placeholder="Ex: Consulta médica, Folga, Almoço"
+                    value={blockReason}
+                    onChange={(e) => setBlockReason(e.target.value)}
+                    className="border-indigo-500/20 text-xs"
+                  />
+                </div>
+
+                <Button
+                  onClick={saveBlock}
+                  disabled={savingBlock}
+                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow hover:from-amber-500 hover:to-orange-500"
+                >
+                  {savingBlock ? 'Salvando...' : 'Adicionar Bloqueio'}
+                </Button>
+              </div>
+
+              {/* Lista de Bloqueios Existentes */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Bloqueios Ativos ({blocksList.length})</p>
+                {blocksList.length === 0 ? (
+                  <p className="py-4 text-center text-xs text-muted-foreground">Nenhum bloqueio cadastrado para este barbeiro.</p>
+                ) : (
+                  <div className="max-h-52 overflow-y-auto space-y-2">
+                    {blocksList.map((blk) => (
+                      <div key={blk.id} className="flex items-center justify-between rounded-lg border border-indigo-500/15 bg-card/60 p-3 text-xs">
+                        <div>
+                          <p className="font-semibold text-foreground">{blk.reason}</p>
+                          <p className="text-muted-foreground mt-0.5">
+                            {formatDateTime(blk.start_time)} até {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', timeStyle: 'short' }).format(new Date(blk.end_time))}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeBlock(blk.id)}
+                          className="size-7 text-muted-foreground hover:text-destructive"
+                          title="Remover bloqueio"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

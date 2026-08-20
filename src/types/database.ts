@@ -118,6 +118,16 @@ export interface WhatsAppConfig {
   updated_at: string
 }
 
+export interface BarberBlock {
+  id: string
+  shop_id: string
+  barber_id: string
+  reason: string
+  start_time: string
+  end_time: string
+  created_at: string
+}
+
 export interface GoogleCalendarToken {
   id: string
   shop_id: string
@@ -134,6 +144,7 @@ export interface Database {
       shops: { Row: Shop; Insert: Omit<Shop, 'id' | 'created_at' | 'updated_at' | 'public_slug'> & { public_slug?: string | null }; Update: Partial<Omit<Shop, 'id'>> }
       barbers: { Row: Barber; Insert: Omit<Barber, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Barber, 'id'>> }
       barber_availability: { Row: BarberAvailability; Insert: Omit<BarberAvailability, 'id'>; Update: Partial<Omit<BarberAvailability, 'id'>> }
+      barber_blocks: { Row: BarberBlock; Insert: Omit<BarberBlock, 'id' | 'created_at'>; Update: Partial<Omit<BarberBlock, 'id'>> }
       services: { Row: Service; Insert: Omit<Service, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Service, 'id'>> }
       barber_services: { Row: BarberService; Insert: Omit<BarberService, 'id'>; Update: Partial<Omit<BarberService, 'id'>> }
       appointment_services: { Row: AppointmentService; Insert: Omit<AppointmentService, 'id'>; Update: Partial<Omit<AppointmentService, 'id'>> }

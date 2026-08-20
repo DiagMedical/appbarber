@@ -445,6 +445,12 @@ src/
 - **`src/pages/Reports.tsx`**: Painel financeiro expandido com Faturamento Bruto, Comissões a Pagar (Repasse), Lucro Líquido Retido, Tabela comparativa de fechamento por barbeiro e distribuição por Forma de Pagamento.
 - **Tradução de Selects / Dropdowns**: Corrigidos todos os `<SelectValue>` que renderizavam texto bruto em inglês antes de clicar (Reports, Appointments, Booking, Clients, Services, Barbers).
 
+### Sessão 34 — Bloqueio de Horários & Ausências Pontuais de Barbeiros (2026-08-20)
+- **`supabase/migrations/20260820_create_barber_blocks.sql`**: Criada tabela `barber_blocks` com índices e RLS.
+- **`src/lib/availability.ts`**: Integrada consulta de `barber_blocks` no algoritmo `getAvailableSlots`, bloqueando slots indisponíveis no site público e nos fluxos de agendamento.
+- **`src/pages/Barbers.tsx`**: Adicionado botão e modal completo para criar/remover bloqueios e folgas pontuais por data e faixa horária.
+- **`src/pages/Dashboard.tsx`**: Agenda Semanal agora plota os blocos de indisponibilidade (`🔒 [Motivo]`) com estilo discreto.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

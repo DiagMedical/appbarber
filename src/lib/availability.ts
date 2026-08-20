@@ -57,8 +57,17 @@ export async function getAvailableSlots(
     query = query.neq('id', excludeAppointmentId)
   }
 
-  const { data: booked } = await query
-  const bookedSlots = (booked ?? []).map((b: any) => {
+  const [bookedRes, blocksRes] = await Promise.all([
+    query,
+    supabase
+      .from('barber_blocks')
+      .select('start_time, end_time')
+      .eq('barber_id', barberId)
+      .gte('end_time', dayStart)
+      .lte('start_time', dayEnd),
+  ])
+
+  const bookedSlots = (bookedRes.data ?? []).map((b: any) => {
     const start = formatTime(b.start_time)
     const end = formatTime(b.end_time)
     const buffer = b.services?.buffer_minutes ?? 0
@@ -69,6 +78,13 @@ export async function getAvailableSlots(
     }
   })
 
+  const blockedSlots = (blocksRes.data ?? []).map((blk: any) => ({
+    start: formatTime(blk.start_time),
+    end: formatTime(blk.end_time),
+  }))
+
+  const unavailableSlots = [...bookedSlots, ...blockedSlots]
+
   const allSlots: string[] = []
   for (const a of availList) {
     const slots = generateTimeSlots(a.start_time.slice(0, 5), a.end_time.slice(0, 5), serviceDuration)
@@ -77,7 +93,7 @@ export async function getAvailableSlots(
 
   return allSlots.filter((slot) => {
     const slotEnd = addMinutes(slot, serviceDuration)
-    return !bookedSlots.some((b) => slotsOverlap(slot, slotEnd, b.start, b.end))
+    return !unavailableSlots.some((b) => slotsOverlap(slot, slotEnd, b.start, b.end))
   })
 }
 
