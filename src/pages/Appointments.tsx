@@ -33,7 +33,7 @@ const statusLabels: Record<string, string> = {
 
 const statusColors: Record<string, string> = {
   pending: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  confirmed: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+  confirmed: 'bg-amber-500/15 text-amber-500 dark:text-amber-400 font-semibold',
   cancelled: 'bg-red-500/10 text-red-600 dark:text-red-400',
   completed: 'bg-green-500/10 text-green-600 dark:text-green-400',
 }
@@ -448,17 +448,17 @@ function Appointments() {
       <div className="p-4 sm:p-6">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
-              <Calendar className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <Calendar className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Agendamentos</h1>
+              <h1 className="text-2xl font-bold font-heading">Agendamentos</h1>
               <p className="text-sm text-muted-foreground">Lista operacional com acesso aos detalhes</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Select value={filter} onValueChange={(v) => v && setFilter(v)}>
-              <SelectTrigger className="w-28 border-indigo-500/20 sm:w-32 focus:ring-indigo-500">
+              <SelectTrigger className="w-28 border-amber-500/20 sm:w-32 focus:ring-amber-500">
                 <SelectValue placeholder="Todos">
                   {(value) => ({ hoje: 'Hoje', todos: 'Todos' })[value as string] ?? 'Todos'}
                 </SelectValue>
@@ -470,19 +470,19 @@ function Appointments() {
             </Select>
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm() }}>
               <DialogTrigger>
-                <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                <Button className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-md hover:from-amber-400 hover:to-orange-400 font-bold">
                   <Plus className="mr-2 size-4" /> Novo
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="border-amber-500/20 bg-card/95 backdrop-blur-xl">
                 <DialogHeader>
-                  <DialogTitle>Novo Agendamento</DialogTitle>
+                  <DialogTitle className="font-heading">Novo Agendamento</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Barbeiro</label>
                     <Select value={barberId} onValueChange={(v) => v && setBarberId(v)}>
-                      <SelectTrigger className="border-indigo-500/20 focus:ring-indigo-500">
+                      <SelectTrigger className="border-amber-500/20 focus:ring-amber-500">
                         <SelectValue placeholder="Selecione o barbeiro">
                           {(value) => barbers.find((b) => b.id === value)?.name ?? 'Selecione o barbeiro'}
                         </SelectValue>
@@ -496,7 +496,7 @@ function Appointments() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Serviços (selecione um ou mais)</label>
-                    <div className="grid gap-2 sm:grid-cols-2 max-h-[260px] overflow-y-auto rounded-xl border border-indigo-500/10 p-2">
+                    <div className="grid gap-2 sm:grid-cols-2 max-h-[260px] overflow-y-auto rounded-xl border border-amber-500/10 p-2">
                       {services.map((s) => {
                         const isSel = serviceIds.includes(s.id)
                         return (
@@ -506,17 +506,17 @@ function Appointments() {
                             onClick={() => toggleServiceSelection(s.id)}
                             className={`group flex flex-col items-start gap-1 rounded-xl border p-3 text-left text-sm transition-all ${
                               isSel
-                                ? 'border-indigo-500 bg-indigo-500/10 shadow-sm'
-                                : 'border-indigo-500/10 hover:border-indigo-500/30 hover:bg-indigo-500/5'
+                                ? 'border-amber-500 bg-amber-500/10 shadow-sm'
+                                : 'border-amber-500/10 hover:border-amber-500/30 hover:bg-amber-500/5'
                             }`}
                           >
                             <div className="flex w-full items-center justify-between gap-2">
                               <span className="font-medium">{s.name}</span>
-                              <span className="shrink-0 text-xs font-semibold text-indigo-400">R$ {Number(s.price).toFixed(2)}</span>
+                              <span className="shrink-0 text-xs font-semibold text-amber-400">R$ {Number(s.price).toFixed(2)}</span>
                             </div>
                             <div className="flex w-full items-center justify-between">
                               <span className="text-xs text-muted-foreground">{s.duration_minutes} min</span>
-                              {isSel && <Check className="size-4 text-indigo-400" />}
+                              {isSel && <Check className="size-4 text-amber-400" />}
                             </div>
                           </button>
                         )
@@ -530,22 +530,22 @@ function Appointments() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Cliente</label>
-                    <Input placeholder="Nome" value={clientName} onChange={(e) => setClientName(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                    <Input placeholder="Nome" value={clientName} onChange={(e) => setClientName(e.target.value)} className="border-amber-500/20 focus:ring-amber-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">WhatsApp</label>
-                    <Input placeholder="(11) 99999-8888" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                    <Input placeholder="(11) 99999-8888" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="border-amber-500/20 focus:ring-amber-500" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Data</label>
-                    <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border-indigo-500/20 focus:ring-indigo-500" />
+                    <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border-amber-500/20 focus:ring-amber-500" />
                   </div>
                   {barberId && serviceIds.length > 0 && date && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Horário</label>
                       {loadingSlots ? (
                         <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-                          <div className="size-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                          <div className="size-4 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
                           Verificando horários...
                         </div>
                       ) : availableSlots.length === 0 ? (
@@ -559,8 +559,8 @@ function Appointments() {
                               onClick={() => setTime(slot)}
                               className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
                                 time === slot
-                                  ? 'border-indigo-500 bg-indigo-600 text-white shadow-md'
-                                  : 'border-indigo-500/20 text-foreground hover:border-indigo-500/50 hover:bg-indigo-500/10'
+                                  ? 'border-amber-500 bg-amber-500 text-zinc-950 font-bold shadow-md'
+                                  : 'border-amber-500/20 text-foreground hover:border-amber-500/50 hover:bg-amber-500/10'
                               }`}
                             >
                               {slot}
@@ -570,7 +570,7 @@ function Appointments() {
                       )}
                     </div>
                   )}
-                  <Button onClick={createAppointment} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500" disabled={saving || !time}>
+                  <Button onClick={createAppointment} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-md hover:from-amber-400 hover:to-orange-400 font-bold" disabled={saving || !time}>
                     {saving ? 'Criando...' : 'Criar Agendamento'}
                   </Button>
                 </div>
@@ -584,7 +584,7 @@ function Appointments() {
         ) : appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted">
-              <Calendar className="size-8 text-indigo-400" />
+              <Calendar className="size-8 text-amber-400" />
             </div>
             <p className="mb-1 font-medium">Nenhum agendamento</p>
             <p className="text-sm">{filter === 'hoje' ? 'Nenhum agendamento para hoje' : 'Nenhum agendamento encontrado'}</p>
@@ -596,17 +596,17 @@ function Appointments() {
                 <Card
                   key={apt.id}
                   onClick={() => openDetails(apt)}
-                  className="animate-slide-left cursor-pointer border-indigo-500/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5"
+                  className="animate-slide-left cursor-pointer border-amber-500/10 bg-card/60 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5"
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
                   <CardContent className="flex items-center justify-between gap-4 p-4">
                     <div className="flex items-start gap-3">
                       <div className={`mt-1 flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${
-                        apt.status === 'completed' ? 'from-green-500 to-emerald-600' :
-                        apt.status === 'cancelled' ? 'from-red-500 to-rose-600' :
-                        apt.status === 'confirmed' ? 'from-indigo-500 to-blue-600' :
-                        'from-amber-500 to-orange-600'
-                      } text-white shadow-md`}>
+                        apt.status === 'completed' ? 'from-green-500 to-emerald-600 text-zinc-950' :
+                        apt.status === 'cancelled' ? 'from-red-500 to-rose-600 text-white' :
+                        apt.status === 'confirmed' ? 'from-amber-500 to-orange-500 text-zinc-950 font-bold' :
+                        'from-amber-500 to-yellow-600 text-zinc-950'
+                      } shadow-md`}>
                         <Calendar className="size-4" />
                       </div>
                       <div className="space-y-1">
@@ -616,7 +616,7 @@ function Appointments() {
                             {statusLabels[apt.status] ?? apt.status}
                           </span>
                           {apt.status === 'completed' && apt.payment_method && (
-                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
                               <DollarSign className="size-3" />
                               {PAYMENT_METHOD_LABELS[apt.payment_method]?.label ?? apt.payment_method}
                               {apt.price_at_booking ? ` · R$ ${Number(apt.price_at_booking).toFixed(2)}` : ''}
@@ -632,7 +632,7 @@ function Appointments() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="hidden rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 sm:inline-flex">
+                      <span className="hidden rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400 sm:inline-flex">
                         Abrir detalhes <ArrowRight className="ml-1 size-3.5" />
                       </span>
                       {apt.status === 'confirmed' && (
@@ -646,7 +646,7 @@ function Appointments() {
                       </>
                     )}
                     {apt.status === 'pending' && (
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'confirmed') }} title="Confirmar" className="text-muted-foreground hover:text-indigo-500">
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleStatusChange(apt, 'confirmed') }} title="Confirmar" className="text-muted-foreground hover:text-amber-400">
                         <CheckCircle2 className="size-4" />
                       </Button>
                     )}
@@ -667,21 +667,21 @@ function Appointments() {
 
       {/* ── Dialog de Detalhes ── */}
       <Dialog open={detailOpen} onOpenChange={(v) => (v ? setDetailOpen(true) : closeDetails())}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl border-amber-500/20 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle>Detalhe do agendamento</DialogTitle>
+            <DialogTitle className="font-heading">Detalhe do agendamento</DialogTitle>
           </DialogHeader>
 
           {selectedAppointment && (
             <div className="space-y-5">
-              <div className="rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+              <div className="rounded-2xl border border-amber-500/15 bg-amber-500/5 p-4">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   <p className="text-lg font-bold">{selectedAppointment.clientName}</p>
                   <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${statusColors[selectedAppointment.status]}`}>
                     {statusLabels[selectedAppointment.status] ?? selectedAppointment.status}
                   </span>
                   {selectedAppointment.status === 'completed' && selectedAppointment.payment_method && (
-                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400">
                       Pago via {PAYMENT_METHOD_LABELS[selectedAppointment.payment_method]?.label}
                     </span>
                   )}
@@ -690,40 +690,40 @@ function Appointments() {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <User className="size-3.5" /> Cliente
+                    <User className="size-3.5 text-amber-400" /> Cliente
                   </p>
                   <p className="font-medium">{selectedAppointment.clientName}</p>
                   <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="size-4" /> {selectedAppointment.clientPhone || 'Sem telefone'}
                   </p>
                 </div>
-                <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <Scissors className="size-3.5" /> Serviço(s)
+                    <Scissors className="size-3.5 text-amber-400" /> Serviço(s)
                   </p>
                   <p className="font-medium">{selectedAppointment.barberName}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{selectedAppointment.serviceName}</p>
                 </div>
-                <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <CalendarDays className="size-3.5" /> Data e horário
+                    <CalendarDays className="size-3.5 text-amber-400" /> Data e horário
                   </p>
                   <p className="font-medium">{formatDateTime(selectedAppointment.start_time)}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {formatTime(selectedAppointment.start_time)} · {durationMinutes(selectedAppointment)} min
                   </p>
                 </div>
-                <div className="rounded-xl border border-indigo-500/10 bg-card p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-card p-4">
                   <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    <DollarSign className="size-3.5" /> Financeiro
+                    <DollarSign className="size-3.5 text-amber-400" /> Financeiro
                   </p>
                   <p className="font-medium">
                     {selectedAppointment.price_at_booking ? `R$ ${Number(selectedAppointment.price_at_booking).toFixed(2)}` : 'A calcular'}
                   </p>
                   {selectedAppointment.commission_amount ? (
-                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    <p className="mt-1 text-xs text-amber-400">
                       Comissão barbeiro: R$ {Number(selectedAppointment.commission_amount).toFixed(2)}
                     </p>
                   ) : (
@@ -734,13 +734,13 @@ function Appointments() {
 
               <div className="flex flex-wrap gap-2">
                 {selectedAppointment.status === 'pending' && (
-                  <Button onClick={() => handleStatusChange(selectedAppointment, 'confirmed')} className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                  <Button onClick={() => handleStatusChange(selectedAppointment, 'confirmed')} className="bg-gradient-to-r from-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                     <CheckCircle2 className="mr-2 size-4" /> Confirmar
                   </Button>
                 )}
                 {selectedAppointment.status === 'confirmed' && (
                   <>
-                    <Button onClick={() => openCompleteDialog(selectedAppointment)} className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md hover:from-green-500 hover:to-emerald-500">
+                    <Button onClick={() => openCompleteDialog(selectedAppointment)} className="bg-gradient-to-r from-green-500 to-emerald-600 text-zinc-950 font-bold shadow-md hover:from-green-400 hover:to-emerald-500">
                       <CheckCircle2 className="mr-2 size-4" /> Concluir e Cobrar
                     </Button>
                     <Button variant="secondary" onClick={() => handleStatusChange(selectedAppointment, 'cancelled')}>
@@ -759,10 +759,10 @@ function Appointments() {
 
       {/* ── Modal de Conclusão & Pagamento ── */}
       <Dialog open={completeOpen} onOpenChange={setCompleteOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md border-amber-500/20 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold font-heading">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-green-500/10 text-green-400">
                 <CheckCircle2 className="size-5" />
               </span>
               Concluir Atendimento
@@ -771,21 +771,21 @@ function Appointments() {
 
           {completingApt && (
             <div className="space-y-4 pt-2">
-              <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-3">
+              <div className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-3">
                 <p className="text-xs text-muted-foreground">Cliente & Barbeiro</p>
                 <p className="font-semibold text-foreground">{completingApt.clientName} · <span className="font-normal text-muted-foreground">{completingApt.serviceName}</span></p>
                 <p className="text-xs text-muted-foreground mt-0.5">Profissional: <strong className="text-foreground">{completingApt.barberName}</strong></p>
               </div>
 
               {/* Seção de Venda de Produtos */}
-              <div className="rounded-xl border border-indigo-500/15 bg-card/60 p-3 space-y-3">
+              <div className="rounded-xl border border-amber-500/15 bg-card/60 p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
-                    <Package className="size-3.5 text-indigo-500" />
+                    <Package className="size-3.5 text-amber-400" />
                     Produtos Balcão (Opcional)
                   </label>
                   {checkoutProducts.length > 0 && (
-                    <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                    <span className="text-xs font-bold text-amber-400">
                       + R$ {checkoutProducts.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toFixed(2)}
                     </span>
                   )}
@@ -805,14 +805,14 @@ function Appointments() {
                           onClick={() => addProductToCheckout(prod)}
                           className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-all ${
                             inCart
-                              ? 'border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold'
-                              : 'border-indigo-500/15 bg-background text-foreground hover:bg-indigo-500/5'
+                              ? 'border-amber-500 bg-amber-500/15 text-amber-400 font-semibold'
+                              : 'border-amber-500/15 bg-background text-foreground hover:bg-amber-500/5'
                           }`}
                         >
                           <span>{prod.name}</span>
                           <span className="text-[10px] text-muted-foreground">R$ {Number(prod.price).toFixed(2)}</span>
                           {inCart && (
-                            <span className="rounded-full bg-indigo-600 text-white text-[10px] size-4 flex items-center justify-center font-bold">
+                            <span className="rounded-full bg-amber-500 text-zinc-950 text-[10px] size-4 flex items-center justify-center font-bold">
                               {inCart.quantity}
                             </span>
                           )}
@@ -872,7 +872,7 @@ function Appointments() {
                     min="0"
                     value={paidAmount}
                     onChange={(e) => setPaidAmount(Number(e.target.value) || 0)}
-                    className="border-indigo-500/20 pl-10 text-base font-bold focus:ring-indigo-500"
+                    className="border-amber-500/20 pl-10 text-base font-bold focus:ring-amber-500"
                   />
                 </div>
               </div>
@@ -888,8 +888,8 @@ function Appointments() {
                       onClick={() => setPaymentMethod(key)}
                       className={`flex items-center gap-2 rounded-xl border p-2.5 text-xs font-medium transition-all ${
                         paymentMethod === key
-                          ? 'border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                          : 'border-indigo-500/15 bg-card/60 text-muted-foreground hover:bg-indigo-500/5'
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-400 shadow-sm font-semibold'
+                          : 'border-amber-500/15 bg-card/60 text-muted-foreground hover:bg-amber-500/5'
                       }`}
                     >
                       <Icon className="size-4 shrink-0" />
@@ -900,7 +900,7 @@ function Appointments() {
               </div>
 
               {/* Prévia da Comissão */}
-              <div className="rounded-xl border border-dashed border-indigo-500/20 bg-muted/40 p-3.5 space-y-2">
+              <div className="rounded-xl border border-dashed border-amber-500/20 bg-muted/40 p-3.5 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Taxa do Barbeiro:</span>
                   <div className="flex items-center gap-1">

@@ -105,24 +105,24 @@ function AppLayout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-indigo-500/15 bg-gradient-to-b from-indigo-950 via-slate-950 to-indigo-950 p-4 text-white shadow-2xl backdrop-blur-xl transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-amber-500/15 bg-gradient-to-b from-zinc-950 via-zinc-900 to-black p-4 text-zinc-100 shadow-2xl backdrop-blur-xl transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-6 flex flex-col items-center">
-          <div className="relative mb-3 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-blue-600 shadow-xl shadow-indigo-500/30 ring-1 ring-white/20">
-            <Scissors className="size-7 text-white" />
-            <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-indigo-950" title="Sistema Online">
+          <div className="relative mb-3 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 shadow-xl shadow-amber-500/25 ring-1 ring-white/20">
+            <Scissors className="size-7 text-zinc-950" />
+            <span className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-zinc-950" title="Sistema Online">
               <span className="size-1.5 rounded-full bg-white animate-pulse" />
             </span>
           </div>
           <div className="text-center">
-            <h1 className="bg-gradient-to-r from-indigo-200 via-white to-blue-200 bg-clip-text text-xl font-black tracking-tight text-transparent font-heading">
+            <h1 className="bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-xl font-black tracking-tight text-transparent font-heading">
               {shop?.name || 'AppBarber'}
             </h1>
             <div className="mt-1 flex items-center justify-center gap-1.5">
-              <span className="inline-block size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-indigo-300/70">Painel de Gestão</p>
+              <span className="inline-block size-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/60">Painel Executivo</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-indigo-300 hover:bg-white/10 hover:text-white lg:hidden" onClick={() => setSidebarOpen(false)}>
+          <Button variant="ghost" size="icon" className="absolute right-2 top-2 text-zinc-400 hover:bg-white/10 hover:text-white lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="size-4" />
           </Button>
         </div>
@@ -136,25 +136,25 @@ function AppLayout() {
                 key={item.href}
                 className={`group relative justify-start font-medium transition-all duration-200 rounded-xl ${
                   active
-                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/30 ring-1 ring-white/20 font-semibold'
-                    : 'bg-transparent text-indigo-200/80 hover:bg-white/10 hover:text-white'
+                    ? 'bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/25 ring-1 ring-white/20 font-bold'
+                    : 'bg-transparent text-zinc-300 hover:bg-white/5 hover:text-amber-300'
                 }`}
                 onClick={() => { navigate(item.href); setSidebarOpen(false) }}
               >
-                <Icon className={`mr-2.5 size-4.5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-white' : 'text-indigo-400'}`} />
+                <Icon className={`mr-2.5 size-4.5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-zinc-950 font-bold' : 'text-amber-500/70 group-hover:text-amber-400'}`} />
                 <span>{item.label}</span>
                 {active && (
-                  <span className="ml-auto size-1.5 rounded-full bg-white shadow-sm" />
+                  <span className="ml-auto size-1.5 rounded-full bg-zinc-950 shadow-sm" />
                 )}
               </Button>
             )
           })}
           {isAdmin && shop ? (
             <Button
-              className="justify-start bg-transparent text-indigo-200/80 hover:bg-white/10 hover:text-white transition-all duration-200 rounded-xl"
+              className="justify-start bg-transparent text-zinc-300 hover:bg-white/5 hover:text-amber-300 transition-all duration-200 rounded-xl"
               onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
             >
-              <Globe className="mr-2.5 size-4.5 text-indigo-400" /> Site Público
+              <Globe className="mr-2.5 size-4.5 text-amber-500/70" /> Site Público
             </Button>
           ) : null}
         </nav>
@@ -178,11 +178,11 @@ function AppLayout() {
           </button>
         )}
 
-        <div className="flex items-center justify-between border-t border-indigo-500/15 pt-3">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-indigo-200/80 hover:bg-white/10 hover:text-white rounded-xl">
-            {theme === 'dark' ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5 text-indigo-300" />}
+        <div className="flex items-center justify-between border-t border-amber-500/15 pt-3">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-zinc-400 hover:bg-white/10 hover:text-amber-300 rounded-xl">
+            {theme === 'dark' ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5 text-zinc-400" />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/login') }} className="text-indigo-200/80 hover:bg-rose-500/20 hover:text-rose-300 rounded-xl" title="Sair da conta">
+          <Button variant="ghost" size="icon" onClick={() => { signOut(); navigate('/login') }} className="text-zinc-400 hover:bg-rose-500/20 hover:text-rose-300 rounded-xl" title="Sair da conta">
             <LogOut className="size-4.5" />
           </Button>
         </div>
@@ -191,21 +191,21 @@ function AppLayout() {
       {/* Main Content */}
       <div className="flex flex-1 flex-col lg:ml-64">
         {/* Mobile Top Bar */}
-        <header className="flex items-center justify-between bg-gradient-to-r from-indigo-950 to-indigo-900 px-4 py-3 text-white lg:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="text-indigo-200 hover:text-white">
+        <header className="flex items-center justify-between border-b border-amber-500/15 bg-gradient-to-r from-zinc-950 via-zinc-900 to-black px-4 py-3 text-white lg:hidden">
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="text-amber-400 hover:text-amber-300">
             <Menu className="size-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-md">
-              <Scissors className="size-4 text-white" />
+            <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
+              <Scissors className="size-4 text-zinc-950 font-bold" />
             </div>
             <div className="leading-tight">
-              <p className="font-bold tracking-tight">AppBarber</p>
-              <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-indigo-300/50">Gestão</p>
+              <p className="font-bold tracking-tight text-amber-200">AppBarber</p>
+              <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-amber-200/50">Executivo</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-indigo-200 hover:text-white">
-            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-zinc-400 hover:text-amber-300">
+            {theme === 'dark' ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4" />}
           </Button>
         </header>
 

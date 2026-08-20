@@ -169,23 +169,23 @@ function Services() {
       <div className="p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-500/20">
-              <Scissors className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <Scissors className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Serviços</h1>
+              <h1 className="text-2xl font-bold font-heading">Serviços</h1>
               <p className="text-sm text-muted-foreground">Catálogo com preço, duração e status operacional</p>
             </div>
           </div>
           <Dialog open={open} onOpenChange={(v) => { if (!v && form.formState.isDirty && !confirm('Você tem alterações não salvas. Deseja realmente sair?')) return; setOpen(v); if (!v) reset() }}>
             <DialogTrigger>
-              <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+              <Button className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                 <Plus className="mr-2 size-4" /> Novo Serviço
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="border-amber-500/20 bg-card/95 backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle>{editing ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
+                <DialogTitle className="font-heading">{editing ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -196,7 +196,7 @@ function Services() {
                       <FormItem>
                         <FormLabel>Nome do serviço</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Corte de Cabelo" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: Corte de Cabelo" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -210,7 +210,7 @@ function Services() {
                       <FormItem>
                         <FormLabel>Preço (R$)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: 50.00" type="number" step="0.01" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: 50.00" type="number" step="0.01" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -224,7 +224,7 @@ function Services() {
                       <FormItem>
                         <FormLabel>Duração (minutos)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: 30" type="number" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: 30" type="number" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -238,7 +238,7 @@ function Services() {
                       <FormItem>
                         <FormLabel>Tempo de limpeza / Buffer (minutos)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: 5" type="number" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: 5" type="number" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -254,7 +254,7 @@ function Services() {
                           <Checkbox
                             checked={field.value ?? false}
                             onCheckedChange={field.onChange}
-                            className="border-indigo-500/30 focus:ring-indigo-500 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
+                            className="border-amber-500/30 focus:ring-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500 data-[state=checked]:text-zinc-950"
                           />
                         </FormControl>
                         <FormLabel className="mb-0 cursor-pointer">Combo (pacote de serviços)</FormLabel>
@@ -262,7 +262,7 @@ function Services() {
                     )}
                   />
 
-                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                     {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
                   </Button>
                 </form>
@@ -273,13 +273,13 @@ function Services() {
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           {[
-            { label: 'Total', value: services.length, border: 'border-violet-500/20', from: 'from-violet-500', to: 'to-indigo-600' },
+            { label: 'Total', value: services.length, border: 'border-amber-500/20', from: 'from-amber-500', to: 'to-yellow-600' },
             { label: 'Ativos', value: services.filter((s) => s.active).length, border: 'border-emerald-500/20', from: 'from-emerald-500', to: 'to-green-600' },
-            { label: 'Ticket médio', value: services.length ? currency.format(services.reduce((acc, s) => acc + Number(s.price), 0) / services.length) : 'R$ 0,00', border: 'border-indigo-500/20', from: 'from-indigo-500', to: 'to-blue-600' },
+            { label: 'Ticket médio', value: services.length ? currency.format(services.reduce((acc, s) => acc + Number(s.price), 0) / services.length) : 'R$ 0,00', border: 'border-orange-500/20', from: 'from-orange-500', to: 'to-amber-600' },
           ].map((item) => (
-            <div key={item.label} className={`rounded-2xl border bg-card p-4 shadow-sm ${item.border}`}>
+            <div key={item.label} className={`rounded-2xl border bg-card/60 backdrop-blur-xl p-4 shadow-sm ${item.border}`}>
               <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="mt-1 text-2xl font-bold">{item.value}</p>
+              <p className="mt-1 text-2xl font-bold font-heading">{item.value}</p>
               <div className={`mt-3 h-1 w-16 rounded-full bg-gradient-to-r ${item.from} ${item.to}`} />
             </div>
           ))}
@@ -292,11 +292,11 @@ function Services() {
               placeholder="Buscar serviço..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 border-indigo-500/20 focus:ring-indigo-500"
+              className="pl-9 border-amber-500/20 focus:ring-amber-500"
             />
           </div>
           <Select value={filter} onValueChange={(v) => setFilter(v as ServiceFilter)}>
-            <SelectTrigger className="w-40 border-indigo-500/20 focus:ring-indigo-500">
+            <SelectTrigger className="w-40 border-amber-500/20 focus:ring-amber-500">
               <Filter className="mr-2 size-4 text-muted-foreground" />
               <SelectValue placeholder="Filtro">
                 {(value) => ({ all: 'Todos', active: 'Ativos', inactive: 'Inativos' })[value as ServiceFilter] ?? 'Filtro'}
@@ -309,7 +309,7 @@ function Services() {
             </SelectContent>
           </Select>
           {(query || filter !== 'all') && (
-            <Button variant="ghost" onClick={() => { setQuery(''); setFilter('all') }} className="text-muted-foreground hover:text-indigo-600">
+            <Button variant="ghost" onClick={() => { setQuery(''); setFilter('all') }} className="text-muted-foreground hover:text-amber-400">
               Limpar filtros
             </Button>
           )}
@@ -318,9 +318,9 @@ function Services() {
         {loading ? (
           <ListSkeleton count={4} />
         ) : visibleServices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-500/15 bg-indigo-500/5 py-16 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-amber-500/15 bg-amber-500/5 py-16 text-muted-foreground">
             <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted">
-              <Scissors className="size-8 text-indigo-400" />
+              <Scissors className="size-8 text-amber-400" />
             </div>
             <p className="mb-1 font-medium">{query || filter !== 'all' ? 'Nenhum resultado encontrado' : 'Nenhum serviço ainda'}</p>
             <p className="text-sm">{query || filter !== 'all' ? 'Tente outro termo ou limpe os filtros' : 'Clique em "Novo Serviço" para começar'}</p>
@@ -328,29 +328,29 @@ function Services() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleServices.map((service, i) => (
-              <Card key={service.id} className="animate-fade-in border-indigo-500/10 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5" style={{ animationDelay: `${i * 60}ms` }}>
+              <Card key={service.id} className="animate-fade-in border-amber-500/10 bg-card/60 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5" style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-indigo-600/20 text-indigo-600 dark:text-indigo-400">
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 font-bold">
                         <Clock className="size-4" />
                       </div>
                       <div>
-                        <p className="font-medium">{service.name}</p>
+                        <p className="font-medium text-foreground">{service.name}</p>
                         <div className="mt-1 flex flex-wrap gap-2 text-xs">
-                          <span className={`rounded-full px-2.5 py-1 ${service.active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                          <span className={`rounded-full px-2.5 py-1 ${service.active ? 'bg-emerald-500/10 text-emerald-400 font-medium' : 'bg-muted text-muted-foreground'}`}>
                             {service.active ? 'Ativo' : 'Inativo'}
                           </span>
-<span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
-                              {service.duration_minutes} min
+                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-400 font-semibold">
+                            {service.duration_minutes} min
+                          </span>
+                          {service.is_combo && (
+                            <span className="rounded-full bg-amber-500/15 px-2.5 py-1 font-bold text-amber-400">
+                              Combo
                             </span>
-{service.is_combo && (
-  <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400">
-    Combo
-  </span>
-)}
+                          )}
                           {service.buffer_minutes ? (
-                            <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-600 dark:text-amber-400">
+                            <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-400 font-medium">
                               +{service.buffer_minutes} min limpeza
                             </span>
                           ) : null}
@@ -359,11 +359,11 @@ function Services() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <DollarSign className="size-4" />
-                    <span>{currency.format(Number(service.price))}</span>
+                    <DollarSign className="size-4 text-amber-400" />
+                    <span className="font-semibold text-foreground">{currency.format(Number(service.price))}</span>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => edit(service)} className="text-muted-foreground hover:text-indigo-600">
+                    <Button variant="ghost" size="icon" onClick={() => edit(service)} className="text-muted-foreground hover:text-amber-400">
                       <Pencil className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => remove(service.id)} className="text-muted-foreground hover:text-destructive">

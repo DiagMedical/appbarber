@@ -314,22 +314,23 @@ function Reports() {
   return (
     <PageTransition>
       <div className="p-4 sm:p-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        {/* Header com Saudações e Filtro de Período */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
-              <BarChart3 className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <BarChart3 className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Relatórios & Financeiro</h1>
+              <h1 className="text-2xl font-bold font-heading">Relatórios & Financeiro</h1>
               <p className="text-sm text-muted-foreground">Faturamento, repasse de comissões e fechamento de caixa</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 sm:inline-flex">
+            <span className="hidden rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 sm:inline-flex">
               {periodLabel}
             </span>
             <Select value={period} onValueChange={(v) => v && setPeriod(v)}>
-              <SelectTrigger className="w-40 border-indigo-500/20">
+              <SelectTrigger className="w-40 border-amber-500/20">
                 <SelectValue placeholder="Período">
                   {(value) => PERIOD_LABELS[value as string] ?? 'Período'}
                 </SelectValue>
@@ -347,78 +348,78 @@ function Reports() {
           <div className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-28 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
+                <div key={i} className="h-28 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
               ))}
             </div>
             <div className="grid gap-6 lg:grid-cols-2">
-              <div className="h-80 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
-              <div className="h-80 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
+              <div className="h-80 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
+              <div className="h-80 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             {/* ── Cards de Métricas Principais ── */}
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              <Card className="border-indigo-500/10">
+              <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl">
                 <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
-                    <Calendar className="size-5" />
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-zinc-950 shadow-md">
+                    <Calendar className="size-5 font-bold" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Agendamentos</p>
-                    <p className="text-xl sm:text-2xl font-bold">{summary.total}</p>
+                    <p className="text-xl sm:text-2xl font-bold font-heading">{summary.total}</p>
                     <p className="text-[11px] text-muted-foreground">{summary.completed} concluídos</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-emerald-500/10 bg-emerald-500/5">
+              <Card className="border-emerald-500/20 bg-emerald-500/5 backdrop-blur-xl">
                 <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
-                    <DollarSign className="size-5" />
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-zinc-950 shadow-md">
+                    <DollarSign className="size-5 font-bold" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Faturamento Bruto</p>
-                    <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{currency.format(summary.grossRevenue)}</p>
+                    <p className="text-xs font-semibold text-emerald-400">Faturamento Bruto</p>
+                    <p className="text-xl sm:text-2xl font-bold text-emerald-400 font-heading">{currency.format(summary.grossRevenue)}</p>
                     <p className="text-[11px] text-muted-foreground">Serviços e Produtos</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-amber-500/10 bg-amber-500/5">
+              <Card className="border-amber-500/20 bg-amber-500/5 backdrop-blur-xl">
                 <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md">
-                    <Wallet className="size-5" />
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-md">
+                    <Wallet className="size-5 font-bold" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Comissões</p>
-                    <p className="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">{currency.format(summary.totalCommissions)}</p>
+                    <p className="text-xs font-semibold text-amber-400">Comissões</p>
+                    <p className="text-xl sm:text-2xl font-bold text-amber-400 font-heading">{currency.format(summary.totalCommissions)}</p>
                     <p className="text-[11px] text-muted-foreground">Repasse aos barbeiros</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-rose-500/10 bg-rose-500/5">
+              <Card className="border-rose-500/20 bg-rose-500/5 backdrop-blur-xl">
                 <CardContent className="flex items-center gap-3 p-4 sm:p-5">
                   <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md">
                     <TrendingDown className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">Despesas da Loja</p>
-                    <p className="text-xl sm:text-2xl font-bold text-rose-600 dark:text-rose-400">{currency.format(summary.totalExpenses)}</p>
+                    <p className="text-xs font-semibold text-rose-400">Despesas da Loja</p>
+                    <p className="text-xl sm:text-2xl font-bold text-rose-400 font-heading">{currency.format(summary.totalExpenses)}</p>
                     <p className="text-[11px] text-muted-foreground">{expenses.length} lançamentos</p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-green-500/10 bg-green-500/10">
+              <Card className="border-green-500/30 bg-green-500/10 backdrop-blur-xl">
                 <CardContent className="flex items-center gap-3 p-4 sm:p-5">
-                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white shadow-md">
-                    <TrendingUp className="size-5" />
+                  <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-zinc-950 shadow-md">
+                    <TrendingUp className="size-5 font-bold" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-green-600 dark:text-green-400">Lucro Líquido Real</p>
-                    <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{currency.format(summary.netRevenue)}</p>
+                    <p className="text-xs font-bold text-green-400">Lucro Líquido Real</p>
+                    <p className="text-xl sm:text-2xl font-black text-green-400 font-heading">{currency.format(summary.netRevenue)}</p>
                     <p className="text-[11px] text-muted-foreground">Retido pela barbearia</p>
                   </div>
                 </CardContent>
@@ -426,12 +427,12 @@ function Reports() {
             </div>
 
             {/* ── Tabela de Fechamento de Comissões por Barbeiro ── */}
-            <Card className="border-indigo-500/15">
+            <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div className="flex items-center gap-2">
-                  <Users className="size-5 text-indigo-500" />
+                  <Users className="size-5 text-amber-400" />
                   <div>
-                    <CardTitle className="text-base">Fechamento & Comissões por Barbeiro</CardTitle>
+                    <CardTitle className="text-base font-heading">Fechamento & Comissões por Barbeiro</CardTitle>
                     <p className="text-xs text-muted-foreground">Extrato detalhado de repasse e desempenho de cada profissional</p>
                   </div>
                 </div>
@@ -443,46 +444,46 @@ function Reports() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-indigo-500/10 text-xs uppercase text-muted-foreground">
+                        <tr className="border-b border-amber-500/10 text-xs uppercase text-muted-foreground">
                           <th className="pb-3 font-semibold">Barbeiro</th>
                           <th className="pb-3 text-center font-semibold">Taxa</th>
                           <th className="pb-3 text-center font-semibold">Atendimentos</th>
                           <th className="pb-3 text-right font-semibold">Faturamento Gerado</th>
-                          <th className="pb-3 text-right font-semibold text-amber-600 dark:text-amber-400">Repasse Barbeiro</th>
-                          <th className="pb-3 text-right font-semibold text-green-600 dark:text-green-400">Lucro Barbearia</th>
+                          <th className="pb-3 text-right font-semibold text-amber-400">Repasse Barbeiro</th>
+                          <th className="pb-3 text-right font-semibold text-green-400">Lucro Barbearia</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-indigo-500/10">
+                      <tbody className="divide-y divide-amber-500/10">
                         {barberStats.map((b) => (
-                          <tr key={b.id} className="transition-colors hover:bg-indigo-500/5">
+                          <tr key={b.id} className="transition-colors hover:bg-amber-500/5">
                             <td className="py-3 font-medium">
                               <p className="text-foreground">{b.name}</p>
                               <p className="text-xs text-muted-foreground">{b.completed} concluídos · {b.cancelled} cancelados</p>
                             </td>
                             <td className="py-3 text-center">
-                              <span className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                              <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400">
                                 {b.commissionRate}%
                               </span>
                             </td>
                             <td className="py-3 text-center font-medium">{b.completed}</td>
                             <td className="py-3 text-right font-semibold">{currency.format(b.revenue)}</td>
-                            <td className="py-3 text-right font-bold text-amber-600 dark:text-amber-400">
+                            <td className="py-3 text-right font-bold text-amber-400">
                               {currency.format(b.commissionTotal)}
                             </td>
-                            <td className="py-3 text-right font-bold text-green-600 dark:text-green-400">
+                            <td className="py-3 text-right font-bold text-green-400">
                               {currency.format(b.shopRetained)}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className="border-t-2 border-indigo-500/20 font-bold">
+                        <tr className="border-t-2 border-amber-500/20 font-bold">
                           <td className="pt-3">Totais do Período</td>
                           <td className="pt-3 text-center">—</td>
                           <td className="pt-3 text-center">{summary.completed}</td>
                           <td className="pt-3 text-right">{currency.format(summary.grossRevenue)}</td>
-                          <td className="pt-3 text-right text-amber-600 dark:text-amber-400">{currency.format(summary.totalCommissions)}</td>
-                          <td className="pt-3 text-right text-green-600 dark:text-green-400">{currency.format(summary.netRevenue)}</td>
+                          <td className="pt-3 text-right text-amber-400">{currency.format(summary.totalCommissions)}</td>
+                          <td className="pt-3 text-right text-green-400">{currency.format(summary.netRevenue)}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -492,12 +493,12 @@ function Reports() {
             </Card>
 
             {/* ── Despesas & Saídas da Barbearia ── */}
-            <Card className="border-rose-500/15">
+            <Card className="border-rose-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div className="flex items-center gap-2">
-                  <Receipt className="size-5 text-rose-500" />
+                  <Receipt className="size-5 text-rose-400" />
                   <div>
-                    <CardTitle className="text-base">Despesas & Custos da Barbearia</CardTitle>
+                    <CardTitle className="text-base font-heading">Despesas & Custos da Barbearia</CardTitle>
                     <p className="text-xs text-muted-foreground">Aluguel, produtos, contas e manutenção no período</p>
                   </div>
                 </div>
@@ -517,7 +518,7 @@ function Reports() {
                       variant="link"
                       size="sm"
                       onClick={() => setExpenseModalOpen(true)}
-                      className="text-rose-600 dark:text-rose-400 mt-1"
+                      className="text-rose-400 mt-1"
                     >
                       + Lançar primeira despesa
                     </Button>
@@ -526,7 +527,7 @@ function Reports() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                       <thead>
-                        <tr className="border-b border-indigo-500/10 text-xs uppercase text-muted-foreground">
+                        <tr className="border-b border-amber-500/10 text-xs uppercase text-muted-foreground">
                           <th className="pb-3 font-semibold">Data</th>
                           <th className="pb-3 font-semibold">Categoria</th>
                           <th className="pb-3 font-semibold">Descrição</th>
@@ -534,19 +535,19 @@ function Reports() {
                           <th className="pb-3 text-right font-semibold">Ação</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-indigo-500/10">
+                      <tbody className="divide-y divide-amber-500/10">
                         {expenses.map((exp) => (
                           <tr key={exp.id} className="transition-colors hover:bg-rose-500/5">
                             <td className="py-3 text-xs text-muted-foreground">
                               {new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', dateStyle: 'short' }).format(new Date(`${exp.expense_date}T12:00:00-03:00`))}
                             </td>
                             <td className="py-3">
-                              <span className="rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                              <span className="rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-400">
                                 {EXPENSE_CATEGORIES[exp.category] ?? exp.category}
                               </span>
                             </td>
                             <td className="py-3 font-medium text-foreground">{exp.description}</td>
-                            <td className="py-3 text-right font-bold text-rose-600 dark:text-rose-400">
+                            <td className="py-3 text-right font-bold text-rose-400">
                               - {currency.format(exp.amount)}
                             </td>
                             <td className="py-3 text-right">
@@ -565,7 +566,7 @@ function Reports() {
                       <tfoot>
                         <tr className="border-t-2 border-rose-500/20 font-bold">
                           <td colSpan={3} className="pt-3">Total de Despesas</td>
-                          <td className="pt-3 text-right text-rose-600 dark:text-rose-400">
+                          <td className="pt-3 text-right text-rose-400">
                             - {currency.format(summary.totalExpenses)}
                           </td>
                           <td />
@@ -580,16 +581,16 @@ function Reports() {
             {/* ── Formas de Pagamento & Faturamento Mensal ── */}
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Meios de Pagamento */}
-              <Card className="border-indigo-500/10">
+              <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <Wallet className="size-5 text-indigo-500" />
-                    <CardTitle className="text-base">Entradas por Forma de Pagamento</CardTitle>
+                    <Wallet className="size-5 text-amber-400" />
+                    <CardTitle className="text-base font-heading">Entradas por Forma de Pagamento</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {paymentStats.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
+                    <div className="rounded-xl border border-dashed border-amber-500/15 bg-amber-500/5 p-4 text-sm text-muted-foreground">
                       Nenhum pagamento registrado no período.
                     </div>
                   ) : (
@@ -601,7 +602,7 @@ function Reports() {
                           <div key={p.method} className="space-y-1.5">
                             <div className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
-                                <Icon className="size-4 text-indigo-500" />
+                                <Icon className="size-4 text-amber-400" />
                                 <span className="font-medium">{p.label}</span>
                                 <span className="text-xs text-muted-foreground">({p.count} transações)</span>
                               </div>
@@ -610,9 +611,9 @@ function Reports() {
                                 <span className="ml-2 text-xs text-muted-foreground">({pct}%)</span>
                               </div>
                             </div>
-                            <div className="h-2 overflow-hidden rounded-full bg-indigo-500/10">
+                            <div className="h-2 overflow-hidden rounded-full bg-amber-500/10">
                               <div
-                                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-500"
+                                className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
@@ -625,16 +626,16 @@ function Reports() {
               </Card>
 
               {/* Faturamento Mensal */}
-              <Card className="border-indigo-500/10">
+              <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
                 <CardHeader>
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="size-5 text-indigo-500" />
-                    <CardTitle className="text-base">Faturamento Mensal</CardTitle>
+                    <TrendingUp className="size-5 text-amber-400" />
+                    <CardTitle className="text-base font-heading">Faturamento Mensal</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
                   {monthlyStats.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
+                    <div className="rounded-xl border border-dashed border-amber-500/15 bg-amber-500/5 p-4 text-sm text-muted-foreground">
                       Sem dados suficientes para montar o gráfico.
                     </div>
                   ) : (
@@ -645,7 +646,7 @@ function Reports() {
                           <div key={m.key} className="flex flex-1 flex-col items-center gap-1.5">
                             <span className="text-[10px] font-semibold text-foreground">{currency.format(m.revenue)}</span>
                             <div
-                              className="w-full rounded-md bg-gradient-to-t from-indigo-600 via-indigo-500 to-blue-500 shadow-sm transition-all duration-500 hover:opacity-90"
+                              className="w-full rounded-md bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-400 shadow-sm transition-all duration-500 hover:opacity-90"
                               style={{ height: `${height}%` }}
                             />
                             <span className="text-[10px] text-muted-foreground uppercase">{m.label}</span>
@@ -659,31 +660,31 @@ function Reports() {
             </div>
 
             {/* ── Leitura Rápida ── */}
-            <Card className="border-indigo-500/10">
+            <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="size-5 text-indigo-500" />
-                  <CardTitle className="text-base">Indicadores Operacionais</CardTitle>
+                  <Sparkles className="size-5 text-amber-400" />
+                  <CardTitle className="text-base font-heading">Indicadores Operacionais</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Taxa de Conclusão</p>
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="mt-1 text-2xl font-bold font-heading">
                     {summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0}%
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Eficiência da agenda</p>
                 </div>
-                <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Taxa de Cancelamento</p>
-                  <p className="mt-1 text-2xl font-bold text-rose-600 dark:text-rose-400">
+                  <p className="mt-1 text-2xl font-bold text-rose-400 font-heading">
                     {summary.total > 0 ? Math.round((summary.cancelled / summary.total) * 100) : 0}%
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Faltas e desistências</p>
                 </div>
-                <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Margem de Retenção Real</p>
-                  <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
+                  <p className="mt-1 text-2xl font-bold text-green-400 font-heading">
                     {summary.grossRevenue > 0 ? Math.round((summary.netRevenue / summary.grossRevenue) * 100) : 0}%
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Percentual retido pós-comissão e despesas</p>
@@ -695,10 +696,10 @@ function Reports() {
 
         {/* ── Modal de Nova Despesa ── */}
         <Dialog open={expenseModalOpen} onOpenChange={setExpenseModalOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md border-amber-500/20 bg-card/95 backdrop-blur-xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Receipt className="size-5 text-rose-500" />
+                <Receipt className="size-5 text-rose-400" />
                 Lançar Despesa / Saída de Caixa
               </DialogTitle>
             </DialogHeader>
@@ -706,7 +707,7 @@ function Reports() {
               <div>
                 <label className="text-xs font-semibold text-muted-foreground mb-1 block">Categoria</label>
                 <Select value={newExpenseCategory} onValueChange={(v) => v && setNewExpenseCategory(v)}>
-                  <SelectTrigger className="border-indigo-500/20">
+                  <SelectTrigger className="border-amber-500/20">
                     <SelectValue placeholder="Selecione a categoria">
                       {(value) => EXPENSE_CATEGORIES[value as string] ?? 'Categoria'}
                     </SelectValue>
@@ -725,7 +726,7 @@ function Reports() {
                   placeholder="Ex: Conta de luz, Compra de pomadas, Aluguel"
                   value={newExpenseDesc}
                   onChange={(e) => setNewExpenseDesc(e.target.value)}
-                  className="border-indigo-500/20"
+                  className="border-amber-500/20"
                 />
               </div>
 
@@ -739,7 +740,7 @@ function Reports() {
                     placeholder="150.00"
                     value={newExpenseAmount}
                     onChange={(e) => setNewExpenseAmount(e.target.value)}
-                    className="border-indigo-500/20"
+                    className="border-amber-500/20"
                   />
                 </div>
                 <div>
@@ -748,7 +749,7 @@ function Reports() {
                     type="date"
                     value={newExpenseDate}
                     onChange={(e) => setNewExpenseDate(e.target.value)}
-                    className="border-indigo-500/20"
+                    className="border-amber-500/20"
                   />
                 </div>
               </div>
@@ -756,7 +757,7 @@ function Reports() {
               <Button
                 onClick={handleAddExpense}
                 disabled={savingExpense}
-                className="w-full bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md hover:from-rose-500 hover:to-red-500"
+                className="w-full bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md hover:from-rose-500 hover:to-red-500 font-bold"
               >
                 {savingExpense ? 'Salvando...' : 'Salvar Despesa'}
               </Button>

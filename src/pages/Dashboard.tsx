@@ -94,20 +94,20 @@ function AnimatedCounter({ value, duration = 1200 }: { value: number; duration?:
 
 const cards = [
   {
-    label: 'Barbeiros', icon: Users, from: 'from-indigo-500', to: 'to-blue-600',
-    border: 'border-indigo-500/20', shadow: 'shadow-indigo-500/10', delay: 0,
+    label: 'Barbeiros', icon: Users, from: 'from-amber-500', to: 'to-yellow-600',
+    border: 'border-amber-500/20', shadow: 'shadow-amber-500/10', delay: 0,
   },
   {
-    label: 'Serviços', icon: Scissors, from: 'from-violet-500', to: 'to-indigo-600',
-    border: 'border-violet-500/20', shadow: 'shadow-violet-500/10', delay: 100,
+    label: 'Serviços', icon: Scissors, from: 'from-orange-500', to: 'to-amber-600',
+    border: 'border-orange-500/20', shadow: 'shadow-orange-500/10', delay: 100,
   },
   {
-    label: 'Agendamentos Hoje', icon: Calendar, from: 'from-sky-500', to: 'to-indigo-500',
-    border: 'border-sky-500/20', shadow: 'shadow-sky-500/10', delay: 200,
+    label: 'Agendamentos Hoje', icon: Calendar, from: 'from-amber-400', to: 'to-orange-500',
+    border: 'border-amber-500/20', shadow: 'shadow-amber-500/10', delay: 200,
   },
   {
-    label: 'Total Agendamentos', icon: Clock, from: 'from-indigo-500', to: 'to-purple-600',
-    border: 'border-indigo-500/20', shadow: 'shadow-indigo-500/10', delay: 300,
+    label: 'Total Agendamentos', icon: Clock, from: 'from-yellow-500', to: 'to-amber-700',
+    border: 'border-yellow-500/20', shadow: 'shadow-yellow-500/10', delay: 300,
   },
   {
     label: 'Faturamento do Mês', icon: DollarSign, from: 'from-emerald-500', to: 'to-teal-600',
@@ -116,11 +116,11 @@ const cards = [
 ]
 
 const statusColors: Record<string, string> = {
-  pending: 'border-l-amber-500 bg-amber-500/10',
-  confirmed: 'border-l-indigo-500 bg-indigo-500/10',
-  completed: 'border-l-green-500 bg-green-500/10',
-  cancelled: 'border-l-red-500 bg-red-500/10 opacity-50',
-  blocked: 'border-l-gray-500 bg-gray-500/20 text-muted-foreground',
+  pending: 'border-l-amber-500 bg-amber-500/10 text-amber-300',
+  confirmed: 'border-l-amber-400 bg-amber-500/15 text-amber-200',
+  completed: 'border-l-emerald-500 bg-emerald-500/10 text-emerald-300',
+  cancelled: 'border-l-rose-500 bg-rose-500/10 opacity-50 text-rose-300',
+  blocked: 'border-l-zinc-500 bg-zinc-800/40 text-zinc-400',
 }
 
 const statusLabels: Record<string, string> = {
@@ -523,14 +523,14 @@ function Dashboard() {
     <PageTransition>
       <div className="relative p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Ambient Glow */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-7xl bg-gradient-to-b from-indigo-500/10 via-sky-500/5 to-transparent blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-7xl bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent blur-3xl" />
 
         {/* Header com Saudações e Data */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 capitalize">
-                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-0.5 text-xs font-semibold text-amber-400 capitalize">
+                <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
                 {formattedToday}
               </span>
             </div>
@@ -545,7 +545,7 @@ function Dashboard() {
           <div className="flex items-center gap-3">
             <Button
               onClick={() => window.location.href = '/appointments'}
-              className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-500 hover:to-blue-500 transition-all duration-300 font-semibold"
+              className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:from-amber-400 hover:to-orange-400 transition-all duration-300 font-bold"
             >
               <Calendar className="mr-2 size-4" /> Ver Todos Agendamentos
             </Button>
@@ -568,26 +568,26 @@ function Dashboard() {
               return (
                 <div
                   key={card.label}
-                  className={`group animate-fade-in-up relative overflow-hidden rounded-2xl border bg-card/60 backdrop-blur-xl p-5 shadow-lg ${card.shadow} ${card.border} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:border-indigo-500/40`}
+                  className={`group animate-fade-in-up relative overflow-hidden rounded-2xl border bg-card/60 backdrop-blur-xl p-5 shadow-lg ${card.shadow} ${card.border} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:border-amber-500/40`}
                   style={{ animationDelay: `${card.delay}ms` }}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${card.from} ${card.to} opacity-[0.03] transition-opacity duration-300 group-hover:opacity-[0.08]`} />
                   
                   {/* Subtle Background Curve (Sparkline SVG) */}
                   <svg className="absolute -bottom-2 -right-4 h-16 w-32 opacity-15 transition-opacity group-hover:opacity-30" viewBox="0 0 100 40" fill="none">
-                    <path d="M0 35 Q 25 15, 50 25 T 100 5 L 100 40 L 0 40 Z" fill="currentColor" className="text-indigo-500" />
+                    <path d="M0 35 Q 25 15, 50 25 T 100 5 L 100 40 L 0 40 Z" fill="currentColor" className="text-amber-500" />
                   </svg>
 
                   <div className="relative">
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{card.label}</span>
-                      <div className={`flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.from} ${card.to} text-white shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`}>
+                      <div className={`flex size-10 items-center justify-center rounded-xl bg-gradient-to-br ${card.from} ${card.to} text-zinc-950 shadow-md transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`}>
                         <Icon className="size-5" />
                       </div>
                     </div>
                     <p className={isCurrency ? "text-2xl sm:text-3xl font-extrabold tracking-tight font-heading" : "text-3xl sm:text-4xl font-extrabold tracking-tight font-heading"}>
                       {isCurrency ? (
-                        <span className="bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 bg-clip-text text-transparent">{value}</span>
+                        <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-green-400 bg-clip-text text-transparent">{value}</span>
                       ) : (
                         <AnimatedCounter value={rawValue} duration={1400} />
                       )}
@@ -609,20 +609,20 @@ function Dashboard() {
                 value: metrics.nextTwoHours,
                 description: 'Atendimentos chegando agora',
                 icon: Clock,
-                from: 'from-indigo-500',
-                to: 'to-blue-600',
-                border: 'border-indigo-500/20',
-                badgeBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+                from: 'from-amber-500',
+                to: 'to-yellow-600',
+                border: 'border-amber-500/20',
+                badgeBg: 'bg-amber-500/10 text-amber-300',
               },
               {
                 label: 'Pendentes hoje',
                 value: metrics.pendingToday,
                 description: 'Precisam de confirmação',
                 icon: AlertCircle,
-                from: 'from-amber-500',
-                to: 'to-orange-600',
-                border: 'border-amber-500/20',
-                badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+                from: 'from-orange-500',
+                to: 'to-amber-600',
+                border: 'border-orange-500/20',
+                badgeBg: 'bg-orange-500/10 text-orange-300',
               },
               {
                 label: 'Concluídos hoje',
@@ -632,7 +632,7 @@ function Dashboard() {
                 from: 'from-emerald-500',
                 to: 'to-green-600',
                 border: 'border-emerald-500/20',
-                badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                badgeBg: 'bg-emerald-500/10 text-emerald-300',
               },
               {
                 label: 'Cancelados hoje',
@@ -642,7 +642,7 @@ function Dashboard() {
                 from: 'from-rose-500',
                 to: 'to-red-600',
                 border: 'border-rose-500/20',
-                badgeBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+                badgeBg: 'bg-rose-500/10 text-rose-300',
               },
             ].map((item) => {
               const Icon = item.icon
@@ -655,7 +655,7 @@ function Dashboard() {
                   <div className="relative">
                     <div className="mb-3 flex items-center justify-between">
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</span>
-                      <div className={`flex size-9 items-center justify-center rounded-xl bg-gradient-to-br ${item.from} ${item.to} text-white shadow-md`}>
+                      <div className={`flex size-9 items-center justify-center rounded-xl bg-gradient-to-br ${item.from} ${item.to} text-zinc-950 shadow-md`}>
                         <Icon className="size-4.5" />
                       </div>
                     </div>
@@ -669,24 +669,24 @@ function Dashboard() {
             })}
           </div>
 
-          <div className="rounded-2xl border border-indigo-500/10 bg-card p-5 shadow-sm">
+          <div className="rounded-2xl border border-amber-500/15 bg-card/60 backdrop-blur-xl p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
-                  <Clock className="size-4" />
+                <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-md">
+                  <Clock className="size-4 font-bold" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold">Próximos atendimentos</h2>
                   <p className="text-xs text-muted-foreground">Janela de foco operacional</p>
                 </div>
               </div>
-              <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
                 {metrics.nextTwoHours} agora
               </span>
             </div>
 
             {upcomingAppointments.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-amber-500/15 bg-amber-500/5 p-4 text-sm text-muted-foreground">
                 Nenhum atendimento nas próximas 2 horas.
               </div>
             ) : (
@@ -694,13 +694,13 @@ function Dashboard() {
                 {upcomingAppointments.map((appt) => (
                   <div
                     key={appt.id}
-                    className="rounded-xl border border-indigo-500/10 bg-background/80 p-3 transition-colors hover:border-indigo-500/30 hover:bg-indigo-500/5"
+                    className="rounded-xl border border-amber-500/10 bg-background/80 p-3 transition-colors hover:border-amber-500/30 hover:bg-amber-500/5"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold">{appt.client_name}</p>
-                          <span className={`rounded px-2 py-0.5 text-[11px] font-medium ${statusColors[appt.status] ?? 'bg-muted text-muted-foreground'}`}>
+                          <p className="font-semibold text-foreground">{appt.client_name}</p>
+                          <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${statusColors[appt.status] ?? 'bg-muted text-muted-foreground'}`}>
                             {statusLabels[appt.status] ?? appt.status}
                           </span>
                         </div>
@@ -711,7 +711,7 @@ function Dashboard() {
                           {formatDateTime(appt.start_time)}
                         </p>
                       </div>
-                      <div className="shrink-0 rounded-lg bg-indigo-500/10 px-2.5 py-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                      <div className="shrink-0 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-sm font-bold text-amber-400">
                         {formatTime(appt.start_time)}
                       </div>
                     </div>
@@ -722,10 +722,10 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-indigo-500/10 bg-card p-5 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-amber-500/15 bg-card/60 backdrop-blur-xl p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
-              <Users className="size-4" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-md">
+              <Users className="size-4 font-bold" />
             </div>
             <div>
               <h2 className="text-base font-bold">Carga por barbeiro</h2>
@@ -734,7 +734,7 @@ function Dashboard() {
           </div>
 
           {barberLoad.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-amber-500/15 bg-amber-500/5 p-4 text-sm text-muted-foreground">
               Nenhum dado de carga disponível.
             </div>
           ) : (
@@ -745,18 +745,18 @@ function Dashboard() {
                   <div key={item.id} className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium">{item.name}</p>
+                        <p className="font-medium text-foreground">{item.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {item.nextStart ? `Próximo às ${formatTime(item.nextStart)}` : 'Sem atendimentos nas próximas 2h'}
                         </p>
                       </div>
-                      <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                      <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
                         {item.total} hoje
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-indigo-500/10">
+                    <div className="h-2 rounded-full bg-amber-500/10">
                       <div
-                        className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-300"
+                        className="h-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
@@ -770,14 +770,14 @@ function Dashboard() {
         <div className="mb-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md">
-                <Calendar className="size-4" />
+              <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-md">
+                <Calendar className="size-4 font-bold" />
               </div>
               <h2 className="text-lg font-bold">Agenda Semanal</h2>
             </div>
             <div className="flex items-center gap-2">
               <Select value={selectedBarber} onValueChange={(v) => setSelectedBarber(v ?? '')}>
-                <SelectTrigger className="w-36 border-indigo-500/20 sm:w-44">
+                <SelectTrigger className="w-36 border-amber-500/20 sm:w-44">
                 {selectedBarber ? (
                   <span className="truncate">{barbers.find((b) => b.id === selectedBarber)?.name ?? selectedBarber}</span>
                 ) : (
@@ -791,19 +791,19 @@ function Dashboard() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="ghost" size="icon" onClick={() => setWeekStart((current) => addUTC3Days(current, -7))} className="text-muted-foreground hover:text-indigo-600">
+              <Button variant="ghost" size="icon" onClick={() => setWeekStart((current) => addUTC3Days(current, -7))} className="text-muted-foreground hover:text-amber-400">
                 <ChevronLeft className="size-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setWeekStart((current) => addUTC3Days(current, 7))} className="text-muted-foreground hover:text-indigo-600">
+              <Button variant="ghost" size="icon" onClick={() => setWeekStart((current) => addUTC3Days(current, 7))} className="text-muted-foreground hover:text-amber-400">
                 <ChevronRight className="size-4" />
               </Button>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-indigo-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
+          <div className="overflow-hidden rounded-2xl border border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
             <div className="flex" style={{ minWidth: '700px' }}>
-              <div className="w-14 shrink-0 border-r border-indigo-500/10 bg-indigo-500/[0.02]">
-                <div className="h-11 border-b border-indigo-500/10" />
+              <div className="w-14 shrink-0 border-r border-amber-500/10 bg-amber-500/[0.02]">
+                <div className="h-11 border-b border-amber-500/10" />
                 {HOURS.map((h) => (
                   <div key={h} className="flex h-[60px] items-end justify-center pb-1 text-[11px] font-semibold text-muted-foreground">
                     {formatHour(h)}
@@ -816,19 +816,19 @@ function Dashboard() {
                 const isToday = dayStr === todayStr
                 const appts = getApptsForDay(day)
                 return (
-                  <div key={dayStr} className={`relative min-w-0 flex-1 border-r border-indigo-500/10 last:border-r-0 ${isToday ? 'bg-indigo-500/[0.04]' : ''}`}>
-                    <div className={`border-b border-indigo-500/10 p-2.5 text-center text-xs font-semibold ${isToday ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold' : 'text-muted-foreground'}`}>
+                  <div key={dayStr} className={`relative min-w-0 flex-1 border-r border-amber-500/10 last:border-r-0 ${isToday ? 'bg-amber-500/[0.04]' : ''}`}>
+                    <div className={`border-b border-amber-500/10 p-2.5 text-center text-xs font-semibold ${isToday ? 'bg-amber-500/10 text-amber-400 font-bold' : 'text-muted-foreground'}`}>
                       <span className="hidden sm:inline">{formatDateBR(day)}</span>
                       <span className="sm:hidden">
                         {WEEKDAY_LABELS[day.getDay()]}
                       </span>
                       {isToday && (
-                        <span className="ml-1.5 inline-block size-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                        <span className="ml-1.5 inline-block size-1.5 rounded-full bg-amber-500 animate-pulse" />
                       )}
                     </div>
                     <div className="relative" style={{ height: `${HOURS.length * 60}px` }}>
                       {HOURS.map((h) => (
-                        <div key={h} className="absolute left-0 right-0 border-t border-indigo-500/5" style={{ top: `${((h - 8) / 12) * 100}%` }} />
+                        <div key={h} className="absolute left-0 right-0 border-t border-amber-500/5" style={{ top: `${((h - 8) / 12) * 100}%` }} />
                       ))}
 
                       {/* 🔴 Linha do Tempo em Tempo Real (Hoje) */}
@@ -837,8 +837,8 @@ function Dashboard() {
                           className="pointer-events-none absolute left-0 right-0 z-20 flex items-center"
                           style={{ top: `${currentTimeTopPercent}%` }}
                         >
-                          <span className="size-2 rounded-full bg-rose-500 ring-4 ring-rose-500/30 animate-pulse -ml-1" />
-                          <div className="h-[2px] w-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                          <span className="size-2 rounded-full bg-amber-400 ring-4 ring-amber-400/30 animate-pulse -ml-1" />
+                          <div className="h-[2px] w-full bg-amber-400 shadow-sm shadow-amber-400/50" />
                         </div>
                       )}
 
@@ -847,7 +847,7 @@ function Dashboard() {
                         return (
                           <div
                             key={appt.id}
-                            className={`absolute left-1 right-1 overflow-hidden rounded-xl border-l-[3px] p-1.5 text-xs shadow-sm transition-all duration-200 hover:z-30 hover:scale-[1.02] hover:shadow-md ${statusColors[appt.status] ?? 'border-l-gray-400 bg-gray-500/10'}`}
+                            className={`absolute left-1 right-1 overflow-hidden rounded-xl border-l-[3px] p-1.5 text-xs shadow-sm transition-all duration-200 hover:z-30 hover:scale-[1.02] hover:shadow-md ${statusColors[appt.status] ?? 'border-l-zinc-500 bg-zinc-800/40 text-zinc-300'}`}
                             style={{ top: pos.top, height: pos.height }}
                           >
                             <p className="truncate font-bold leading-tight text-foreground">{appt.client_name}</p>

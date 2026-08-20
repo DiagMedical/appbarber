@@ -315,23 +315,23 @@ function Barbers() {
       <div className="p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/20">
-              <Users className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <Users className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Barbeiros</h1>
+              <h1 className="text-2xl font-bold font-heading">Barbeiros</h1>
               <p className="text-sm text-muted-foreground">Lista com disponibilidade e acesso rápido aos horários</p>
             </div>
           </div>
           <Dialog open={open} onOpenChange={(v) => { if (!v && form.formState.isDirty && !confirm('Você tem alterações não salvas. Deseja realmente sair?')) return; setOpen(v); if (!v) reset() }}>
             <DialogTrigger>
-              <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+              <Button className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-md hover:from-amber-400 hover:to-orange-400 font-bold">
                 <Plus className="mr-2 size-4" /> Novo Barbeiro
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-sm">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-sm border-amber-500/20 bg-card/95 backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle>{editing ? 'Editar Barbeiro' : 'Novo Barbeiro'}</DialogTitle>
+                <DialogTitle className="font-heading">{editing ? 'Editar Barbeiro' : 'Novo Barbeiro'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -342,7 +342,7 @@ function Barbers() {
                       <FormItem>
                         <FormLabel>Nome</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nome do barbeiro" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Nome do barbeiro" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -356,7 +356,7 @@ function Barbers() {
                       <FormItem>
                         <FormLabel>Telefone (WhatsApp)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: 5511999999999" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: 5511999999999" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <p className="text-xs text-muted-foreground">Para notificações de novos agendamentos.</p>
                         <FormMessage />
@@ -378,7 +378,7 @@ function Barbers() {
                               max="100"
                               step="1"
                               placeholder="50"
-                              className="border-indigo-500/20 pr-8 focus:ring-indigo-500"
+                              className="border-amber-500/20 pr-8 focus:ring-amber-500"
                               {...field}
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">%</span>
@@ -397,7 +397,7 @@ function Barbers() {
                       checked={pushEnabled}
                       disabled={pushLoading}
                       onChange={(e) => togglePush(e.target.checked)}
-                      className="size-4 rounded border-indigo-500/30 text-indigo-600 focus:ring-indigo-500"
+                      className="size-4 rounded border-amber-500/30 text-amber-600 focus:ring-amber-500"
                     />
                     <label htmlFor="push-notifications" className="text-sm font-medium">Ativar notificações de navegador</label>
                   </div>
@@ -412,11 +412,11 @@ function Barbers() {
                           <div className="space-y-2">
                             {field.value ? (
                               <div className="relative inline-block">
-                                <img src={field.value} alt="Preview" className="size-20 rounded-full border-2 border-indigo-500/20 object-cover" />
+                                <img src={field.value} alt="Preview" className="size-20 rounded-full border-2 border-amber-500/20 object-cover" />
                               </div>
                             ) : null}
-                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-indigo-500/10">
-                              <Upload className="size-4 text-indigo-500" />
+                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-amber-500/10">
+                              <Upload className="size-4 text-amber-500" />
                               {field.value ? 'Trocar foto' : 'Fazer upload'}
                               <input
                                 type="file"
@@ -456,7 +456,7 @@ function Barbers() {
                           <textarea
                             placeholder="Fale sobre o barbeiro..."
                             rows={3}
-                            className="w-full rounded-lg border border-indigo-500/20 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                            className="w-full rounded-lg border border-amber-500/20 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
                             {...field}
                           />
                         </FormControl>
@@ -492,8 +492,8 @@ function Barbers() {
                         ))}
                       </div>
                     )}
-                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-indigo-500/10">
-                      <Upload className="size-4 text-indigo-500" /> Adicionar foto
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2 text-sm text-muted-foreground transition hover:bg-amber-500/10">
+                      <Upload className="size-4 text-amber-500" /> Adicionar foto
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -517,7 +517,7 @@ function Barbers() {
                     <p className="text-xs text-muted-foreground">Fotos dos trabalhos realizados, exibidas no site público.</p>
                   </div>
 
-                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                     {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
                   </Button>
                 </form>
@@ -528,13 +528,13 @@ function Barbers() {
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           {[
-            { label: 'Total', value: barbers.length, border: 'border-indigo-500/20', from: 'from-indigo-500', to: 'to-blue-600' },
+            { label: 'Total', value: barbers.length, border: 'border-amber-500/20', from: 'from-amber-500', to: 'to-yellow-600' },
             { label: 'Ativos', value: barbers.filter((b) => b.active).length, border: 'border-emerald-500/20', from: 'from-emerald-500', to: 'to-green-600' },
-            { label: 'Com horários', value: Object.keys(availabilityCount).length, border: 'border-violet-500/20', from: 'from-violet-500', to: 'to-indigo-600' },
+            { label: 'Com horários', value: Object.keys(availabilityCount).length, border: 'border-orange-500/20', from: 'from-orange-500', to: 'to-amber-600' },
           ].map((item) => (
-            <div key={item.label} className={`rounded-2xl border bg-card p-4 shadow-sm ${item.border}`}>
+            <div key={item.label} className={`rounded-2xl border bg-card/60 backdrop-blur-xl p-4 shadow-sm ${item.border}`}>
               <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="mt-1 text-3xl font-bold">{item.value}</p>
+              <p className="mt-1 text-3xl font-bold font-heading">{item.value}</p>
               <div className={`mt-3 h-1 w-16 rounded-full bg-gradient-to-r ${item.from} ${item.to}`} />
             </div>
           ))}
@@ -547,11 +547,11 @@ function Barbers() {
               placeholder="Buscar barbeiro..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 border-indigo-500/20 focus:ring-indigo-500"
+              className="pl-9 border-amber-500/20 focus:ring-amber-500"
             />
           </div>
           <Select value={filter} onValueChange={(v) => setFilter(v as BarberFilter)}>
-            <SelectTrigger className="w-40 border-indigo-500/20 focus:ring-indigo-500">
+            <SelectTrigger className="w-40 border-amber-500/20 focus:ring-amber-500">
               <Filter className="mr-2 size-4 text-muted-foreground" />
               <SelectValue placeholder="Filtro">
                 {(value) => ({ all: 'Todos', active: 'Ativos', inactive: 'Inativos' })[value as BarberFilter] ?? 'Filtro'}
@@ -564,7 +564,7 @@ function Barbers() {
             </SelectContent>
           </Select>
           {(query || filter !== 'all') && (
-            <Button variant="ghost" onClick={() => { setQuery(''); setFilter('all') }} className="text-muted-foreground hover:text-indigo-600">
+            <Button variant="ghost" onClick={() => { setQuery(''); setFilter('all') }} className="text-muted-foreground hover:text-amber-400">
               Limpar filtros
             </Button>
           )}
@@ -573,9 +573,9 @@ function Barbers() {
         {loading ? (
           <ListSkeleton count={4} />
         ) : visibleBarbers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-500/15 bg-indigo-500/5 py-16 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-amber-500/15 bg-amber-500/5 py-16 text-muted-foreground">
             <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted">
-              <Users className="size-8 text-indigo-400" />
+              <Users className="size-8 text-amber-400" />
             </div>
             <p className="mb-1 font-medium">{query || filter !== 'all' ? 'Nenhum resultado encontrado' : 'Nenhum barbeiro ainda'}</p>
             <p className="text-sm">{query || filter !== 'all' ? 'Tente outro termo ou limpe os filtros' : 'Clique em "Novo Barbeiro" para começar'}</p>
@@ -583,26 +583,26 @@ function Barbers() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleBarbers.map((barber, i) => (
-              <Card key={barber.id} className="animate-fade-in border-indigo-500/10 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5" style={{ animationDelay: `${i * 60}ms` }}>
+              <Card key={barber.id} className="animate-fade-in border-amber-500/10 bg-card/60 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5" style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-600/20 text-indigo-600 dark:text-indigo-400">
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 font-bold">
                         <Users className="size-4" />
                       </div>
                       <div>
-                        <p className="font-medium">{barber.name}</p>
+                        <p className="font-medium text-foreground">{barber.name}</p>
                         {barber.phone && (
                           <p className="text-xs text-muted-foreground">{barber.phone}</p>
                         )}
                         <div className="mt-1 flex flex-wrap gap-2 text-xs">
-                          <span className={`rounded-full px-2.5 py-1 ${barber.active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+                          <span className={`rounded-full px-2.5 py-1 ${barber.active ? 'bg-emerald-500/10 text-emerald-400 font-medium' : 'bg-muted text-muted-foreground'}`}>
                             {barber.active ? 'Ativo' : 'Inativo'}
                           </span>
-                          <span className="rounded-full bg-indigo-500/10 px-2.5 py-1 text-indigo-600 dark:text-indigo-400">
+                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-amber-400 font-semibold">
                             {availabilityCount[barber.id] ?? 0} dias
                           </span>
-                          <span className="rounded-full bg-amber-500/10 px-2.5 py-1 font-medium text-amber-600 dark:text-amber-400">
+                          <span className="rounded-full bg-amber-500/15 px-2.5 py-1 font-bold text-amber-400">
                             {barber.commission_rate ?? 50}% comissão
                           </span>
                         </div>
@@ -610,13 +610,13 @@ function Barbers() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openAvail(barber)} title="Horários Semanais" className="text-muted-foreground hover:text-indigo-600">
+                    <Button variant="ghost" size="icon" onClick={() => openAvail(barber)} title="Horários Semanais" className="text-muted-foreground hover:text-amber-400">
                       <Clock className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => openBlocks(barber)} title="Bloqueios & Folgas Pontuais" className="text-muted-foreground hover:text-amber-600">
+                    <Button variant="ghost" size="icon" onClick={() => openBlocks(barber)} title="Bloqueios & Folgas Pontuais" className="text-muted-foreground hover:text-amber-400">
                       <CalendarOff className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => edit(barber)} className="text-muted-foreground hover:text-indigo-600">
+                    <Button variant="ghost" size="icon" onClick={() => edit(barber)} className="text-muted-foreground hover:text-amber-400">
                       <Pencil className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => remove(barber.id)} className="text-muted-foreground hover:text-destructive">
@@ -631,32 +631,32 @@ function Barbers() {
 
         {/* ── Dialog de Horários Semanais ── */}
         <Dialog open={availOpen} onOpenChange={setAvailOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md border-amber-500/20 bg-card/95 backdrop-blur-xl">
             <DialogHeader>
-              <DialogTitle>Horários Semanais — {availBarber?.name}</DialogTitle>
+              <DialogTitle className="font-heading">Horários Semanais — {availBarber?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
               {DAYS.map((day, d) => {
                 const entry = availData[d]
                 if (!entry) return null
                 return (
-                  <div key={d} className="flex items-center gap-3 rounded-lg border border-indigo-500/10 p-3">
+                  <div key={d} className="flex items-center gap-3 rounded-lg border border-amber-500/10 p-3">
                     <label className="flex w-20 cursor-pointer items-center gap-2 text-sm font-medium">
-                      <input type="checkbox" checked={entry.on} onChange={() => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], on: !prev[d].on } }))} className="size-4 accent-indigo-600" />
+                      <input type="checkbox" checked={entry.on} onChange={() => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], on: !prev[d].on } }))} className="size-4 accent-amber-500" />
                       {day}
                     </label>
                     {entry.on && (
                       <div className="flex items-center gap-2">
-                        <Input type="time" value={entry.start} onChange={(e) => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], start: e.target.value } }))} className="h-8 w-24 border-indigo-500/20 text-xs focus:ring-indigo-500" />
+                        <Input type="time" value={entry.start} onChange={(e) => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], start: e.target.value } }))} className="h-8 w-24 border-amber-500/20 text-xs focus:ring-amber-500" />
                         <span className="text-xs text-muted-foreground">até</span>
-                        <Input type="time" value={entry.end} onChange={(e) => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], end: e.target.value } }))} className="h-8 w-24 border-indigo-500/20 text-xs focus:ring-indigo-500" />
+                        <Input type="time" value={entry.end} onChange={(e) => setAvailData((prev) => ({ ...prev, [d]: { ...prev[d], end: e.target.value } }))} className="h-8 w-24 border-amber-500/20 text-xs focus:ring-amber-500" />
                       </div>
                     )}
                   </div>
                 )
               })}
             </div>
-            <Button onClick={saveAvail} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">Salvar Horários</Button>
+            <Button onClick={saveAvail} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">Salvar Horários</Button>
           </DialogContent>
         </Dialog>
 

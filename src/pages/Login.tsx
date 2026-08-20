@@ -70,20 +70,20 @@ function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 p-4">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-black p-4">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-transparent" />
       <div className="relative grid w-full max-w-5xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="hidden rounded-3xl border border-white/10 bg-white/5 p-8 text-white shadow-2xl shadow-indigo-500/10 backdrop-blur lg:flex lg:flex-col lg:justify-between">
+        <div className="hidden rounded-3xl border border-amber-500/15 bg-card/40 p-8 text-foreground shadow-2xl shadow-black/50 backdrop-blur-xl lg:flex lg:flex-col lg:justify-between">
           <div>
-            <div className="mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
-              <Scissors className="size-8 text-white" />
+            <div className="mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <Scissors className="size-8 font-bold" />
             </div>
-            <h1 className="mb-3 text-4xl font-black tracking-tight">AppBarber</h1>
-            <p className="max-w-md text-sm leading-6 text-indigo-100/80">
-              Operação diária de barbearias com agenda clara, confirmação automática e controle do que realmente importa.
+            <h1 className="mb-3 text-4xl font-black tracking-tight font-heading bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 bg-clip-text text-transparent">AppBarber</h1>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              Operação diária de barbearias com agenda clara, confirmação automática via WhatsApp e controle financeiro de alto padrão.
             </p>
           </div>
-          <div className="grid gap-3 text-sm text-indigo-100/80">
+          <div className="grid gap-3 text-sm text-muted-foreground">
             {[
               { icon: Clock3, text: 'Agenda e disponibilidade em tempo real' },
               { icon: MessageSquare, text: 'Confirmações e lembretes via WhatsApp' },
@@ -91,27 +91,27 @@ function Login() {
             ].map((item) => {
               const Icon = item.icon
               return (
-                <div key={item.text} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-white/10">
+                <div key={item.text} className="flex items-center gap-3 rounded-2xl border border-amber-500/10 bg-amber-500/5 px-4 py-3">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
                     <Icon className="size-4" />
                   </div>
-                  <span>{item.text}</span>
+                  <span className="text-foreground/90 font-medium">{item.text}</span>
                 </div>
               )
             })}
           </div>
         </div>
 
-        <Card className="animate-scale-in relative w-full max-w-xl border-indigo-500/20 bg-white/95 shadow-2xl shadow-indigo-500/10 backdrop-blur dark:bg-gray-950/95">
+        <Card className="animate-scale-in relative w-full max-w-xl border-amber-500/20 bg-card/90 shadow-2xl shadow-black/50 backdrop-blur-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
-              <Scissors className="size-8 text-white" />
+            <div className="mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <Scissors className="size-8 font-bold" />
             </div>
-            <CardTitle className="bg-gradient-to-r from-indigo-700 to-blue-700 bg-clip-text text-3xl font-black tracking-tight text-transparent dark:from-indigo-300 dark:to-blue-300">
+            <CardTitle className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-3xl font-black tracking-tight text-transparent font-heading">
               AppBarber
             </CardTitle>
-            <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground/60">Sistema de Gestão</p>
-            <CardDescription>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400/70">Sistema de Gestão Executiva</p>
+            <CardDescription className="text-muted-foreground">
               {mode === 'shop' ? 'Entre com o nome da sua barbearia' : 'Acesso administrativo'}
             </CardDescription>
           </CardHeader>
@@ -122,7 +122,7 @@ function Login() {
                   <label htmlFor="shop-name" className="text-sm font-medium">Nome da Barbearia</label>
                   <div className="relative">
                     <Store className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input id="shop-name" placeholder="Ex: Studio Lima" value={shopName} onChange={(e) => setShopName(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                    <Input id="shop-name" placeholder="Ex: Studio Lima" value={shopName} onChange={(e) => setShopName(e.target.value)} required className="border-amber-500/20 pl-10 focus:ring-amber-500" />
                   </div>
                 </div>
               ) : (
@@ -130,7 +130,7 @@ function Login() {
                   <label htmlFor="email" className="text-sm font-medium">Email</label>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="admin@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                    <Input id="email" type="email" placeholder="admin@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="border-amber-500/20 pl-10 focus:ring-amber-500" />
                   </div>
                 </div>
               )}
@@ -139,13 +139,13 @@ function Login() {
                 <label htmlFor="password" className="text-sm font-medium">Senha</label>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="border-indigo-500/20 pl-10 focus:ring-indigo-500" />
+                  <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="border-amber-500/20 pl-10 focus:ring-amber-500" />
                 </div>
               </div>
 
               {error && <p className="text-sm text-destructive">{error}</p>}
 
-              <Button type="submit" disabled={busy} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+              <Button type="submit" disabled={busy} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                 {busy ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
@@ -153,17 +153,17 @@ function Login() {
             <div className="mt-4 text-center">
               <button
                 type="button"
-                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-indigo-500"
+                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-amber-400"
                 onClick={() => { setMode(mode === 'shop' ? 'admin' : 'shop'); setError('') }}
               >
                 {mode === 'shop' ? 'Acesso do administrador' : 'Login da barbearia'}
               </button>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4 text-xs text-muted-foreground">
+            <div className="mt-4 rounded-2xl border border-amber-500/10 bg-amber-500/5 p-4 text-xs text-muted-foreground">
               {mode === 'shop'
                 ? 'Acesso exclusivo para barbearias cadastradas.'
-                : 'Apenas administradores autorizados.'}
+                : 'Acesso do administrador para gerenciar barbearias e instâncias.'}
             </div>
           </CardContent>
         </Card>

@@ -168,23 +168,23 @@ function Clients() {
       <div className="p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/20">
-              <User className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <User className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Clientes</h1>
+              <h1 className="text-2xl font-bold font-heading">Clientes</h1>
               <p className="text-sm text-muted-foreground">Busque rápido, edite em poucos cliques e veja o histórico essencial</p>
             </div>
           </div>
           <Dialog open={open} onOpenChange={(v) => { if (!v && form.formState.isDirty && !confirm('Você tem alterações não salvas. Deseja realmente sair?')) return; setOpen(v); if (!v) reset() }}>
             <DialogTrigger>
-              <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+              <Button className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                 <Plus className="mr-2 size-4" /> Novo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="border-amber-500/20 bg-card/95 backdrop-blur-xl">
               <DialogHeader>
-                <DialogTitle>{editing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
+                <DialogTitle className="font-heading">{editing ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -195,7 +195,7 @@ function Clients() {
                       <FormItem>
                         <FormLabel>Nome</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nome completo" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Nome completo" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -209,7 +209,7 @@ function Clients() {
                       <FormItem>
                         <FormLabel>WhatsApp</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: 5511999999999" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Ex: 5511999999999" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <p className="text-xs text-muted-foreground">Código do país + DDD + número. Sem espaços ou traços.</p>
                         <FormMessage />
@@ -224,7 +224,7 @@ function Clients() {
                       <FormItem>
                         <FormLabel>Email (opcional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="seu@email.com" type="email" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="seu@email.com" type="email" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -238,14 +238,14 @@ function Clients() {
                       <FormItem>
                         <FormLabel>Observações (opcional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Notas operacionais ou preferências" className="border-indigo-500/20 focus:ring-indigo-500" {...field} />
+                          <Input placeholder="Notas operacionais ou preferências" className="border-amber-500/20 focus:ring-amber-500" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500">
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400">
                     {form.formState.isSubmitting ? <><Loader2 className="mr-2 size-4 animate-spin" /> Salvando...</> : 'Salvar'}
                   </Button>
                 </form>
@@ -256,13 +256,13 @@ function Clients() {
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           {[
-            { label: 'Total', value: clients.length, border: 'border-sky-500/20', from: 'from-sky-500', to: 'to-indigo-600' },
-            { label: 'Com e-mail', value: emailCount, border: 'border-violet-500/20', from: 'from-violet-500', to: 'to-indigo-600' },
-            { label: 'Com notas', value: noteCount, border: 'border-indigo-500/20', from: 'from-indigo-500', to: 'to-blue-600' },
+            { label: 'Total', value: clients.length, border: 'border-amber-500/20', from: 'from-amber-500', to: 'to-yellow-600' },
+            { label: 'Com e-mail', value: emailCount, border: 'border-emerald-500/20', from: 'from-emerald-500', to: 'to-green-600' },
+            { label: 'Com notas', value: noteCount, border: 'border-orange-500/20', from: 'from-orange-500', to: 'to-amber-600' },
           ].map((item) => (
-            <div key={item.label} className={`rounded-2xl border bg-card p-4 shadow-sm ${item.border}`}>
+            <div key={item.label} className={`rounded-2xl border bg-card/60 backdrop-blur-xl p-4 shadow-sm ${item.border}`}>
               <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="mt-1 text-2xl font-bold">{item.value}</p>
+              <p className="mt-1 text-2xl font-bold font-heading">{item.value}</p>
               <div className={`mt-3 h-1 w-16 rounded-full bg-gradient-to-r ${item.from} ${item.to}`} />
             </div>
           ))}
@@ -275,11 +275,11 @@ function Clients() {
               placeholder="Buscar cliente..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 border-indigo-500/20 focus:ring-indigo-500"
+              className="pl-9 border-amber-500/20 focus:ring-amber-500"
             />
           </div>
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as ClientSort)}>
-            <SelectTrigger className="w-40 border-indigo-500/20 focus:ring-indigo-500">
+            <SelectTrigger className="w-40 border-amber-500/20 focus:ring-amber-500">
               <ArrowDownAZ className="mr-2 size-4 text-muted-foreground" />
               <SelectValue placeholder="Ordenar">
                 {(value) => ({ name: 'Nome (A-Z)', recent: 'Recentes' })[value as ClientSort] ?? 'Ordenar'}
@@ -295,9 +295,9 @@ function Clients() {
         {loading ? (
           <ListSkeleton count={4} />
         ) : visibleClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-500/15 bg-indigo-500/5 py-16 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-amber-500/15 bg-amber-500/5 py-16 text-muted-foreground">
             <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-muted">
-              <User className="size-8 text-indigo-400" />
+              <User className="size-8 text-amber-400" />
             </div>
             <p className="mb-1 font-medium">{query ? 'Nenhum resultado encontrado' : 'Nenhum cliente ainda'}</p>
             <p className="text-sm">{query ? 'Tente outro termo de busca' : 'Clique em "Novo Cliente" para começar'}</p>
@@ -306,15 +306,15 @@ function Clients() {
           <div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {pageClients.map((client, i) => (
-              <Card key={client.id} className="animate-fade-in border-indigo-500/10 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5" style={{ animationDelay: `${i * 60}ms` }}>
+              <Card key={client.id} className="animate-fade-in border-amber-500/10 bg-card/60 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5" style={{ animationDelay: `${i * 60}ms` }}>
                 <CardContent className="space-y-4 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500/20 to-indigo-600/20 text-indigo-600 dark:text-indigo-400">
+                      <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 font-bold">
                         <User className="size-4" />
                       </div>
                       <div>
-                        <p className="font-medium">{client.name}</p>
+                        <p className="font-medium text-foreground">{client.name}</p>
                         <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Phone className="size-3" />
                           <span>{client.phone}</span>
@@ -340,8 +340,8 @@ function Clients() {
                       <span>Cadastrado em {formatDate(client.created_at)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-1 border-t border-indigo-500/5 pt-3">
-                    <Button variant="ghost" size="icon" onClick={() => edit(client)} className="text-muted-foreground hover:text-indigo-600">
+                  <div className="flex gap-1 border-t border-amber-500/5 pt-3">
+                    <Button variant="ghost" size="icon" onClick={() => edit(client)} className="text-muted-foreground hover:text-amber-400">
                       <Pencil className="size-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => remove(client.id)} className="text-muted-foreground hover:text-destructive">

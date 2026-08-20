@@ -259,11 +259,11 @@ function WhatsAppSettings() {
       <div className="p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/20">
-              <MessageSquare className="size-5" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20">
+              <MessageSquare className="size-5 font-bold" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">WhatsApp</h1>
+              <h1 className="text-2xl font-bold font-heading">WhatsApp</h1>
               <p className="text-sm text-muted-foreground">Notificações automáticas via Evolution API</p>
             </div>
           </div>
@@ -275,10 +275,10 @@ function WhatsAppSettings() {
 
         {/* Admin shop selector */}
         {isAdmin && !shop && allShops.length > 0 && !targetShopId && (
-          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-indigo-500/10 bg-indigo-500/5 p-4">
-            <Store className="size-5 text-indigo-500" />
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-500/10 bg-amber-500/5 p-4">
+            <Store className="size-5 text-amber-500" />
             <select
-              className="flex-1 rounded-xl border border-indigo-500/20 bg-card px-3 py-2 text-sm focus:ring-indigo-500"
+              className="flex-1 rounded-xl border border-amber-500/20 bg-card px-3 py-2 text-sm focus:ring-amber-500"
               value=""
               onChange={(e) => setSelectedShopId(e.target.value)}
             >
@@ -292,31 +292,31 @@ function WhatsAppSettings() {
 
         {loading ? (
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="h-96 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
-            <div className="h-96 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
-            <div className="h-96 animate-pulse rounded-2xl border border-indigo-500/10 bg-card/70" />
+            <div className="h-96 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
+            <div className="h-96 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
+            <div className="h-96 animate-pulse rounded-2xl border border-amber-500/10 bg-card/70" />
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="border-indigo-500/10">
+            <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 font-bold">
                     <Zap className="size-4" />
                   </div>
                   <div>
-                    <CardTitle>Configuração</CardTitle>
+                    <CardTitle className="font-heading">Configuração</CardTitle>
                     <CardDescription>Dados da instância Evolution API usada pelo AppBarber</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                  <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Instância</p>
                     <p className="mt-1 font-medium">{instanceName || 'Não informada'}</p>
                   </div>
-                  <div className="rounded-xl border border-indigo-500/10 bg-indigo-500/5 p-4">
+                  <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Servidor</p>
                     <p className="mt-1 truncate font-medium">{serverUrl || 'Não informado'}</p>
                   </div>
@@ -328,7 +328,7 @@ function WhatsAppSettings() {
                     placeholder="https://seu-servidor.com:8080"
                     value={serverUrl}
                     onChange={(e) => setServerUrl(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
+                    className="border-amber-500/20 focus:ring-amber-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -337,7 +337,7 @@ function WhatsAppSettings() {
                     placeholder="minha-barbearia"
                     value={instanceName}
                     onChange={(e) => setInstanceName(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
+                    className="border-amber-500/20 focus:ring-amber-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -347,7 +347,7 @@ function WhatsAppSettings() {
                     placeholder="••••••••"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
+                    className="border-amber-500/20 focus:ring-amber-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -358,32 +358,32 @@ function WhatsAppSettings() {
                     placeholder="22"
                     value={reengageIntervalDays}
                     onChange={(e) => setReengageIntervalDays(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
+                    className="border-amber-500/20 focus:ring-amber-500"
                   />
                   <p className="text-xs text-muted-foreground">
                     Número de dias sem visitas para disparar a notificação de re-engajamento.
                   </p>
                 </div>
-                <Button onClick={save} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md hover:from-indigo-500 hover:to-blue-500" disabled={saving}>
+                <Button onClick={save} className="w-full bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 font-bold shadow-md hover:from-amber-400 hover:to-orange-400" disabled={saving}>
                   {saving ? 'Salvando...' : <><Save className="mr-2 size-4" /> Salvar configuração</>}
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-indigo-500/10">
+            <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 font-bold">
                     <Wifi className="size-4" />
                   </div>
                   <div>
-                    <CardTitle>Teste de conexão</CardTitle>
+                    <CardTitle className="font-heading">Teste de conexão</CardTitle>
                     <CardDescription>Valide a integração com uma mensagem real</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="rounded-xl border border-dashed border-indigo-500/15 bg-indigo-500/5 p-4 text-sm text-muted-foreground">
+                <div className="rounded-xl border border-dashed border-amber-500/15 bg-amber-500/5 p-4 text-sm text-muted-foreground">
                   Esse teste confirma se o servidor, a instância e a API Key estão alinhados para disparos automáticos.
                 </div>
                 <div className="space-y-2">
@@ -392,7 +392,7 @@ function WhatsAppSettings() {
                     placeholder="5511999999999"
                     value={testNumber}
                     onChange={(e) => setTestNumber(e.target.value)}
-                    className="border-indigo-500/20 focus:ring-indigo-500"
+                    className="border-amber-500/20 focus:ring-amber-500"
                   />
                   <p className="text-xs text-muted-foreground">
                     Código do país + DDD + número. Ex: 5511999999999
@@ -412,7 +412,7 @@ function WhatsAppSettings() {
                 </Button>
 
                 {testStatus === 'success' && (
-                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-600 dark:text-emerald-400">
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400 font-medium">
                     <Check className="size-4" /> Mensagem enviada. Verifique seu WhatsApp.
                   </div>
                 )}
@@ -424,14 +424,14 @@ function WhatsAppSettings() {
               </CardContent>
             </Card>
 
-            <Card className="border-indigo-500/10">
+            <Card className="border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 font-bold">
                     <Globe className="size-4" />
                   </div>
                   <div>
-                    <CardTitle>Site Público</CardTitle>
+                    <CardTitle className="font-heading">Site Público</CardTitle>
                     <CardDescription>Personalize o site público da sua barbearia</CardDescription>
                   </div>
                 </div>

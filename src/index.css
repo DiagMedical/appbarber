@@ -64,14 +64,14 @@
 
 /* ── Glows & Glassmorphism ── */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
 .dark .glass-panel {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(14, 14, 18, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -82,8 +82,8 @@
 }
 .glass-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.18);
-  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 30px -10px rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 @layer base {
@@ -91,49 +91,49 @@
   body { @apply bg-background text-foreground antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
 }
 
-/* ── Light: Índigo Vibrante ── */
+/* ── Light: Champagne & Âmbar Quente ── */
 :root {
-  --background: 226 100% 97%;
-  --foreground: 222.2 84% 4.9%;
+  --background: 40 25% 97%;
+  --foreground: 240 10% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --card-foreground: 240 10% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 239 84% 57%;
+  --popover-foreground: 240 10% 10%;
+  --primary: 38 92% 45%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 226 60% 92%;
-  --secondary-foreground: 239 60% 35%;
-  --muted: 226 40% 94%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 226 60% 92%;
-  --accent-foreground: 239 60% 35%;
+  --secondary: 40 20% 92%;
+  --secondary-foreground: 38 80% 30%;
+  --muted: 40 15% 93%;
+  --muted-foreground: 240 5% 45%;
+  --accent: 40 20% 92%;
+  --accent-foreground: 38 80% 30%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 226 50% 86%;
-  --input: 226 50% 86%;
-  --ring: 239 84% 57%;
-  --radius: 0.5rem;
+  --border: 40 15% 86%;
+  --input: 40 15% 86%;
+  --ring: 38 92% 45%;
+  --radius: 0.75rem;
 }
 
-/* ── Dark: Índigo Profundo ── */
+/* ── Dark: Dark Titanium & Âmbar Ouro (Whisky / Luxo) ── */
 .dark {
-  --background: 240 30% 6%;
-  --foreground: 210 40% 98%;
-  --card: 240 30% 8%;
-  --card-foreground: 210 40% 98%;
-  --popover: 240 30% 8%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 239 80% 60%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 239 30% 18%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 240 20% 14%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 239 30% 18%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 240 20% 18%;
-  --input: 240 20% 18%;
-  --ring: 239 80% 60%;
+  --background: 240 10% 3.9%;
+  --foreground: 45 30% 96%;
+  --card: 240 10% 6.5%;
+  --card-foreground: 45 30% 96%;
+  --popover: 240 10% 6.5%;
+  --popover-foreground: 45 30% 96%;
+  --primary: 38 92% 50%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 8% 12%;
+  --secondary-foreground: 45 20% 90%;
+  --muted: 240 8% 11%;
+  --muted-foreground: 240 5% 60%;
+  --accent: 38 92% 50%;
+  --accent-foreground: 240 10% 4%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 6% 15%;
+  --input: 240 6% 15%;
+  --ring: 38 92% 50%;
 }
