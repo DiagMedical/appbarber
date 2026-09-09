@@ -116,8 +116,21 @@ function PublicSite() {
   
   // Wizard state
   const [step, setStep] = useState(1)
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<'todos' | 'cabelo' | 'barba' | 'combos'>('todos')
+
+  const goToStep = (nextStep: number) => {
+    setDirection(nextStep > step ? 'forward' : 'backward')
+    setStep(nextStep)
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      const el = document.getElementById('agendar')
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.pageYOffset - 20
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
+    }
+  }
 
   const [barberId, setBarberId] = useState('')
   const [serviceIds, setServiceIds] = useState<string[]>([])
@@ -176,7 +189,7 @@ function PublicSite() {
           )
           if (match) {
             setBarberId(match.id)
-            setStep(2)
+            goToStep(2)
           }
         }
       } catch (err) {
@@ -319,6 +332,7 @@ function PublicSite() {
     setError('')
     setSuccess(false)
     setAvailableSlots([])
+    setDirection('forward')
     setStep(1)
     setIcsData(null)
   }
@@ -695,29 +709,43 @@ function PublicSite() {
                 {/* Stepper Content */}
                 <div className="space-y-6">
                   {/* Step indicators */}
-                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-4">
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4].map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => {
-                            if (s < step) setStep(s)
+                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-5">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex items-center gap-2 sm:gap-3">
+                        {/* Background progress track */}
+                        <div className="absolute top-1/2 left-2 right-2 h-0.5 -translate-y-1/2 bg-white/5 rounded-full -z-0" />
+                        {/* Active glowing progress fill */}
+                        <div
+                          className="absolute top-1/2 left-2 h-0.5 -translate-y-1/2 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 rounded-full -z-0 transition-all duration-500 ease-out shadow-sm shadow-amber-500/50"
+                          style={{
+                            width: `${Math.min(100, Math.max(0, ((step - 1) / 3) * 100))}%`,
+                            maxWidth: 'calc(100% - 16px)',
                           }}
-                          disabled={s >= step}
-                          className={`size-8 rounded-full border text-xs font-bold flex items-center justify-center transition-all ${
-                            step === s
-                              ? 'border-amber-500 bg-amber-500 text-neutral-950 shadow-lg shadow-amber-500/20'
-                              : step > s
-                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400 cursor-pointer'
-                              : 'border-white/5 bg-white/[0.01] text-neutral-500 cursor-not-allowed'
-                          }`}
-                        >
-                          {step > s ? <Check className="size-3.5" /> : s}
-                        </button>
-                      ))}
+                        />
+                        {[1, 2, 3, 4].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              if (s < step) goToStep(s)
+                            }}
+                            disabled={s >= step}
+                            className={`relative z-10 size-8 sm:size-9 rounded-full border text-xs font-bold flex items-center justify-center transition-all duration-300 ${
+                              step === s
+                                ? 'border-amber-500 bg-gradient-to-br from-amber-400 to-amber-600 text-neutral-950 shadow-lg shadow-amber-500/30 scale-105 ring-2 ring-amber-500/20'
+                                : step > s
+                                ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-400 cursor-pointer hover:scale-105'
+                                : 'border-white/10 bg-neutral-900 text-neutral-500 cursor-not-allowed'
+                            }`}
+                          >
+                            {step > s ? <Check className="size-3.5 sm:size-4 stroke-[2.5]" /> : s}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <span className="text-xs text-neutral-400 uppercase tracking-wider">Etapa {step} de 4</span>
+                    <span className="text-xs text-neutral-400 uppercase tracking-wider font-medium">
+                      Etapa <span className="font-bold text-amber-400">{step}</span> de 4
+                    </span>
                   </div>
 
                   {whatsAppOnline === false && shop?.phone && (
@@ -731,7 +759,7 @@ function PublicSite() {
 
                   {/* STEP 1: SERVICES SELECTION */}
                   {step === 1 && (
-                    <div className="space-y-5 animate-fade-in-up">
+                    <div className={`space-y-5 ${direction === 'forward' ? 'animate-slide-right' : 'animate-slide-left'}`}>
                       <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
                         <h3 className="text-lg font-medium text-white">Selecione o serviço</h3>
                         {/* Search and Tabs */}
@@ -812,7 +840,7 @@ function PublicSite() {
                       <div className="flex justify-end pt-2">
                         <Button
                           type="button"
-                          onClick={() => setStep(2)}
+                          onClick={() => goToStep(2)}
                           disabled={serviceIds.length === 0}
                           className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
                         >
@@ -824,9 +852,9 @@ function PublicSite() {
 
                   {/* STEP 2: BARBER SELECTION */}
                   {step === 2 && (
-                    <div className="space-y-5 animate-fade-in-up">
+                    <div className={`space-y-5 ${direction === 'forward' ? 'animate-slide-right' : 'animate-slide-left'}`}>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setStep(1)} className="text-neutral-500 hover:text-white transition">
+                        <button type="button" onClick={() => goToStep(1)} className="text-neutral-500 hover:text-white transition">
                           <ArrowLeft className="size-5" />
                         </button>
                         <h3 className="text-lg font-medium text-white">Escolha o profissional</h3>
@@ -843,7 +871,7 @@ function PublicSite() {
                                 key={b.id}
                                 onClick={() => {
                                   setBarberId(b.id)
-                                  setTimeout(() => setStep(3), 220)
+                                  setTimeout(() => goToStep(3), 200)
                                 }}
                                 className={`group cursor-pointer rounded-2xl border p-4 transition-all duration-300 flex items-center gap-4 ${
                                   isSel
@@ -875,12 +903,12 @@ function PublicSite() {
                       )}
 
                       <div className="flex justify-between pt-2">
-                        <Button variant="ghost" onClick={() => setStep(1)} className="text-neutral-400 hover:text-white rounded-xl">
+                        <Button variant="ghost" onClick={() => goToStep(1)} className="text-neutral-400 hover:text-white rounded-xl">
                           Voltar
                         </Button>
                         <Button
                           type="button"
-                          onClick={() => setStep(3)}
+                          onClick={() => goToStep(3)}
                           disabled={!barberId}
                           className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
                         >
@@ -892,9 +920,9 @@ function PublicSite() {
 
                   {/* STEP 3: DATE & TIME SELECTION */}
                   {step === 3 && (
-                    <div className="space-y-5 animate-fade-in-up">
+                    <div className={`space-y-5 ${direction === 'forward' ? 'animate-slide-right' : 'animate-slide-left'}`}>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setStep(2)} className="text-neutral-500 hover:text-white transition">
+                        <button type="button" onClick={() => goToStep(2)} className="text-neutral-500 hover:text-white transition">
                           <ArrowLeft className="size-5" />
                         </button>
                         <h3 className="text-lg font-medium text-white">Escolha a data e hora</h3>
@@ -1019,12 +1047,12 @@ function PublicSite() {
                       </div>
 
                       <div className="flex justify-between pt-2">
-                        <Button variant="ghost" onClick={() => setStep(2)} className="text-neutral-400 hover:text-white rounded-xl">
+                        <Button variant="ghost" onClick={() => goToStep(2)} className="text-neutral-400 hover:text-white rounded-xl">
                           Voltar
                         </Button>
                         <Button
                           type="button"
-                          onClick={() => setStep(4)}
+                          onClick={() => goToStep(4)}
                           disabled={!date || !time}
                           className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
                         >
@@ -1036,9 +1064,9 @@ function PublicSite() {
 
                   {/* STEP 4: CLIENT DETAILS & FORM */}
                   {step === 4 && (
-                    <div className="space-y-5 animate-fade-in-up">
+                    <div className={`space-y-5 ${direction === 'forward' ? 'animate-slide-right' : 'animate-slide-left'}`}>
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => setStep(3)} className="text-neutral-500 hover:text-white transition">
+                        <button type="button" onClick={() => goToStep(3)} className="text-neutral-500 hover:text-white transition">
                           <ArrowLeft className="size-5" />
                         </button>
                         <h3 className="text-lg font-medium text-white">Preencha seus dados</h3>
@@ -1079,7 +1107,7 @@ function PublicSite() {
                         ) : null}
 
                         <div className="flex justify-between items-center pt-2">
-                          <Button type="button" variant="ghost" onClick={() => setStep(3)} className="text-neutral-400 hover:text-white rounded-xl">
+                          <Button type="button" variant="ghost" onClick={() => goToStep(3)} className="text-neutral-400 hover:text-white rounded-xl">
                             Voltar
                           </Button>
                           

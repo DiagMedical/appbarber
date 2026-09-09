@@ -470,6 +470,11 @@ src/
 - **`src/pages/Dashboard.tsx`**: Adicionados botões no cabeçalho do painel de controle da barbearia: **"Copiar Link"** (com cópia para a área de transferência e notificação toast) e **"Ver Site"** (abre a página de agendamentos em nova aba).
 - **Validação**: Build de produção testado e aprovado com sucesso via `tsc -b && vite build`.
 
+### Sessão 38 — Animações Direcionais & Barra de Progresso no Site Público (2026-09-09)
+- **`src/index.css`**: Adicionados keyframes `@keyframes slide-in-right` e classes utilitárias `.animate-slide-right` e `.animate-slide-left` com curva suave `cubic-bezier(0.16, 1, 0.3, 1)`.
+- **`src/pages/PublicSite.tsx`**: Implementada navegação direcional no wizard de agendamento (deslize da direita ao avançar, da esquerda ao voltar), scroll automático inteligente para o formulário no mobile e barra conectora de progresso preenchida com gradiente âmbar/ouro entre as 4 etapas.
+- **Validação**: Build de produção validado e sem erros.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
