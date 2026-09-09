@@ -523,9 +523,9 @@ function Dashboard() {
 
   return (
     <PageTransition>
-      <div className="relative p-4 sm:p-6 lg:p-8 space-y-8">
+      <div className="relative p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-full min-w-0 overflow-x-hidden">
         {/* Ambient Glow */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-7xl bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-7xl bg-gradient-to-b from-amber-500/10 via-orange-500/5 to-transparent blur-3xl overflow-hidden" />
 
         {/* Header com Saudações e Data */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -536,15 +536,15 @@ function Dashboard() {
                 {formattedToday}
               </span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight font-heading bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-heading bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
               Painel de Controle
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Visão geral das operações, faturamento e fluxo de clientes em tempo real.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {shop && (
               <>
                 <Button
@@ -554,37 +554,37 @@ function Dashboard() {
                     navigator.clipboard.writeText(url)
                     toast.success('Link do site copiado para a área de transferência!')
                   }}
-                  className="border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium"
+                  className="flex-1 sm:flex-initial border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium text-xs sm:text-sm py-2 px-3"
                   title="Copiar link de agendamento público para enviar no WhatsApp ou Instagram"
                 >
-                  <Copy className="mr-2 size-4 text-amber-400" /> Copiar Link
+                  <Copy className="mr-1.5 sm:mr-2 size-3.5 sm:size-4 text-amber-400 shrink-0" /> Copiar Link
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
-                  className="border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium"
+                  className="flex-1 sm:flex-initial border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium text-xs sm:text-sm py-2 px-3"
                   title="Abrir página pública de agendamento em nova aba"
                 >
-                  <Globe className="mr-2 size-4 text-amber-400" /> Ver Site
+                  <Globe className="mr-1.5 sm:mr-2 size-3.5 sm:size-4 text-amber-400 shrink-0" /> Ver Site
                 </Button>
               </>
             )}
             <Button
               onClick={() => window.location.href = '/appointments'}
-              className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:from-amber-400 hover:to-orange-400 transition-all duration-300 font-bold rounded-xl"
+              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:from-amber-400 hover:to-orange-400 transition-all duration-300 font-bold rounded-xl text-xs sm:text-sm py-2"
             >
-              <Calendar className="mr-2 size-4" /> Ver Todos Agendamentos
+              <Calendar className="mr-1.5 sm:mr-2 size-3.5 sm:size-4 shrink-0" /> Ver Todos Agendamentos
             </Button>
           </div>
         </div>
 
         {/* ── Cards de Estatísticas Principais (Linear / Stripe Style) ── */}
         {!counts ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => <StatsCardSkeleton key={i} />)}
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid gap-3.5 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {cards.map((card, i) => {
               const Icon = card.icon
               const keyMap = ['barbers', 'services', 'todayAppointments', 'totalAppointments', 'monthRevenue'] as const
@@ -799,7 +799,10 @@ function Dashboard() {
               <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-zinc-950 shadow-md">
                 <Calendar className="size-4 font-bold" />
               </div>
-              <h2 className="text-lg font-bold">Agenda Semanal</h2>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold">Agenda Semanal</h2>
+                <p className="text-[11px] text-muted-foreground sm:hidden">↔ Arraste para os lados para ver a semana</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Select value={selectedBarber} onValueChange={(v) => setSelectedBarber(v ?? '')}>
@@ -826,8 +829,8 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg">
-            <div className="flex" style={{ minWidth: '700px' }}>
+          <div className="overflow-x-auto rounded-2xl border border-amber-500/15 bg-card/60 backdrop-blur-xl shadow-lg scrollbar-thin">
+            <div className="flex min-w-[700px]">
               <div className="w-14 shrink-0 border-r border-amber-500/10 bg-amber-500/[0.02]">
                 <div className="h-11 border-b border-amber-500/10" />
                 {HOURS.map((h) => (

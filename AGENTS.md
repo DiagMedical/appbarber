@@ -475,6 +475,17 @@ src/
 - **`src/pages/PublicSite.tsx`**: Implementada navegação direcional no wizard de agendamento (deslize da direita ao avançar, da esquerda ao voltar), scroll automático inteligente para o formulário no mobile e barra conectora de progresso preenchida com gradiente âmbar/ouro entre as 4 etapas.
 - **Validação**: Build de produção validado e sem erros.
 
+### Sessão 39 — Correção de Layout Mobile e Overflow Horizontal no Dashboard (2026-09-09)
+- **Diagnóstico**: A grade de "Agenda Semanal" continha `minWidth: 700px` dentro de container com `overflow-hidden` (sem `overflow-x-auto`) e o layout pai não tinha `min-w-0` / `overflow-x-hidden`, forçando toda a viewport do celular a esticar para 700px de largura.
+- **`src/components/AppLayout.tsx`**: Adicionadas classes `min-w-0 max-w-full overflow-x-hidden` no layout raiz e no container `<main>` para isolar completamente transbordamentos de tela no mobile.
+- **`src/components/PageTransition.tsx`**: Adicionadas classes `w-full min-w-0 max-w-full`.
+- **`src/pages/Dashboard.tsx`**: 
+  - Ajustado wrapper raiz para `max-w-full min-w-0 overflow-x-hidden`.
+  - Botões do topo reformulados para flex responsivo (`flex-wrap w-full sm:w-auto`).
+  - Grade de cards ajustada com breakpoints mobile consistentes (`grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5`).
+  - Card da "Agenda Semanal" atualizado para `overflow-x-auto scrollbar-thin` com `min-w-[700px]`, permitindo que a tabela role suavemente dentro do seu próprio card sem quebrar a largura da página, acompanhado de aviso amigável *"↔ Arraste para os lados para ver a semana"* em telas mobile.
+- **Validação**: Build de produção aprovado com sucesso via `tsc -b && vite build`.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

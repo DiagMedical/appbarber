@@ -98,7 +98,7 @@ function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -189,7 +189,7 @@ function AppLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col lg:ml-64">
+      <div className="flex flex-1 flex-col min-w-0 max-w-full overflow-x-hidden lg:ml-64">
         {/* Mobile Top Bar */}
         <header className="flex items-center justify-between border-b border-amber-500/15 bg-gradient-to-r from-zinc-950 via-zinc-900 to-black px-4 py-3 text-white lg:hidden">
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="text-amber-400 hover:text-amber-300">
@@ -209,7 +209,7 @@ function AppLayout() {
           </Button>
         </header>
 
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 max-w-full">
           <Outlet />
         </main>
       </div>
