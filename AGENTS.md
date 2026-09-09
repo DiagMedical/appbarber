@@ -465,6 +465,11 @@ src/
 - **`src/pages/Appointments.tsx`**: Mensagem de WhatsApp pós-atendimento agora inclui automaticamente o link de avaliação 5 estrelas no Google.
 - **`src/lib/google-calendar.ts`**: Criado utilitário para espelhamento e sincronização de eventos com a API do Google Agenda.
 
+### Sessão 37 — Acesso ao Site Público & Botões de Ação Rápida no Painel (2026-09-09)
+- **`src/components/AppLayout.tsx`**: Liberado o botão "Site Público" (ícone de globo) na barra lateral para **todas as barbearias autenticadas** (`shop != null`), e não apenas para admins.
+- **`src/pages/Dashboard.tsx`**: Adicionados botões no cabeçalho do painel de controle da barbearia: **"Copiar Link"** (com cópia para a área de transferência e notificação toast) e **"Ver Site"** (abre a página de agendamentos em nova aba).
+- **Validação**: Build de produção testado e aprovado com sucesso via `tsc -b && vite build`.
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)

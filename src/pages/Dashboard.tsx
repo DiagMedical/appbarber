@@ -15,8 +15,10 @@ import {
   startOfUTC3DayISO,
   startOfUTC3MonthISO,
 } from '@/lib/timezone'
-import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, DollarSign, Users, Scissors, XCircle } from 'lucide-react'
+import { AlertCircle, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock, DollarSign, Users, Scissors, XCircle, Globe, Copy } from 'lucide-react'
 import { useAuth } from '@/providers/AuthProvider'
+import { buildPublicSiteUrl } from '@/lib/site'
+import { toast } from 'sonner'
 import type { Barber } from '@/types/database'
 
 const WEEKDAY_LABELS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -542,10 +544,34 @@ function Dashboard() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {shop && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const url = buildPublicSiteUrl(shop.public_slug)
+                    navigator.clipboard.writeText(url)
+                    toast.success('Link do site copiado para a área de transferência!')
+                  }}
+                  className="border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium"
+                  title="Copiar link de agendamento público para enviar no WhatsApp ou Instagram"
+                >
+                  <Copy className="mr-2 size-4 text-amber-400" /> Copiar Link
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
+                  className="border-amber-500/25 bg-zinc-900/90 text-zinc-200 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/50 transition-all duration-200 rounded-xl font-medium"
+                  title="Abrir página pública de agendamento em nova aba"
+                >
+                  <Globe className="mr-2 size-4 text-amber-400" /> Ver Site
+                </Button>
+              </>
+            )}
             <Button
               onClick={() => window.location.href = '/appointments'}
-              className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:from-amber-400 hover:to-orange-400 transition-all duration-300 font-bold"
+              className="bg-gradient-to-r from-amber-500 via-amber-500 to-orange-500 text-zinc-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:from-amber-400 hover:to-orange-400 transition-all duration-300 font-bold rounded-xl"
             >
               <Calendar className="mr-2 size-4" /> Ver Todos Agendamentos
             </Button>

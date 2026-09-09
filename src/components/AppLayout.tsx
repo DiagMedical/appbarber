@@ -149,7 +149,7 @@ function AppLayout() {
               </Button>
             )
           })}
-          {isAdmin && shop ? (
+          {shop ? (
             <Button
               className="justify-start bg-transparent text-zinc-300 hover:bg-white/5 hover:text-amber-300 transition-all duration-200 rounded-xl"
               onClick={() => window.open(buildPublicSiteUrl(shop.public_slug), '_blank')}
