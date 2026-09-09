@@ -602,13 +602,13 @@ function PublicSite() {
             </div>
             
             <div className="mt-6 flex flex-wrap justify-center gap-4">
-              <a href="#agendar" className="h-11 bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold transition-all px-8 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <a href="#agendar" className="btn-shimmer h-11 bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition-all px-8 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-105 active:scale-95 duration-200">
                 Agendar Horário
               </a>
               {whatsappLink ? (
                 <Button
                   variant="outline"
-                  className="border-white/[0.08] text-white hover:bg-white/5 px-8 h-11 rounded-full"
+                  className="border-white/[0.08] text-white hover:bg-white/5 hover:border-amber-500/30 px-8 h-11 rounded-full transition-all duration-200"
                   onClick={() => window.open(whatsappLink, '_blank')}
                 >
                   Falar no WhatsApp
@@ -797,16 +797,17 @@ function PublicSite() {
                         <p className="py-8 text-center text-sm text-neutral-500">Nenhum serviço correspondente encontrado.</p>
                       ) : (
                         <div className="grid gap-3 sm:grid-cols-2 max-h-[360px] overflow-y-auto pr-1">
-                          {filteredServices.map((s) => {
+                          {filteredServices.map((s, idx) => {
                             const isSel = serviceIds.includes(s.id)
                             return (
                               <div
                                 key={s.id}
                                 onClick={() => toggleServiceSelection(s.id)}
-                                className={`group cursor-pointer rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between ${
+                                style={{ animationDelay: `${idx * 40}ms` }}
+                                className={`animate-card-cascade group cursor-pointer rounded-2xl border p-4 transition-all duration-300 flex flex-col justify-between ${
                                   isSel
-                                    ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/5'
-                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-white/[0.12] hover:bg-white/[0.03]'
+                                    ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10 scale-[1.01]'
+                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-white/[0.12] hover:bg-white/[0.03] hover:scale-[1.005]'
                                 }`}
                               >
                                 <div className="space-y-1">
@@ -824,7 +825,7 @@ function PublicSite() {
                                     {s.duration_minutes} min {s.buffer_minutes ? `(+${s.buffer_minutes}m limpeza)` : ''}
                                   </span>
                                   {isSel ? (
-                                    <span className="text-amber-400 font-semibold flex items-center gap-1">
+                                    <span className="text-amber-400 font-semibold flex items-center gap-1 animate-scale-in">
                                       <Check className="size-3 flex-shrink-0" /> Selecionado
                                     </span>
                                   ) : (
@@ -842,7 +843,7 @@ function PublicSite() {
                           type="button"
                           onClick={() => goToStep(2)}
                           disabled={serviceIds.length === 0}
-                          className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
+                          className="btn-shimmer bg-amber-500 text-neutral-950 hover:bg-amber-400 font-bold transition-all rounded-xl shadow-lg shadow-amber-500/20"
                         >
                           Avançar <ArrowRight className="ml-1.5 size-4" />
                         </Button>
@@ -864,7 +865,7 @@ function PublicSite() {
                         <p className="py-8 text-center text-sm text-neutral-500">Nenhum barbeiro ativo disponível.</p>
                       ) : (
                         <div className="grid gap-4 sm:grid-cols-2 max-h-[360px] overflow-y-auto pr-1">
-                          {barbers.map((b) => {
+                          {barbers.map((b, idx) => {
                             const isSel = barberId === b.id
                             return (
                               <div
@@ -873,10 +874,11 @@ function PublicSite() {
                                   setBarberId(b.id)
                                   setTimeout(() => goToStep(3), 200)
                                 }}
-                                className={`group cursor-pointer rounded-2xl border p-4 transition-all duration-300 flex items-center gap-4 ${
+                                style={{ animationDelay: `${idx * 50}ms` }}
+                                className={`animate-card-cascade group cursor-pointer rounded-2xl border p-4 transition-all duration-300 flex items-center gap-4 ${
                                   isSel
-                                    ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/5'
-                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-white/[0.12] hover:bg-white/[0.03]'
+                                    ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10 scale-[1.01]'
+                                    : 'border-white/[0.04] bg-white/[0.01] hover:border-white/[0.12] hover:bg-white/[0.03] hover:scale-[1.005]'
                                 }`}
                               >
                                 <div className="relative shrink-0 size-16">
@@ -910,7 +912,7 @@ function PublicSite() {
                           type="button"
                           onClick={() => goToStep(3)}
                           disabled={!barberId}
-                          className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
+                          className="btn-shimmer bg-amber-500 text-neutral-950 hover:bg-amber-400 font-bold transition-all rounded-xl shadow-lg shadow-amber-500/20"
                         >
                           Avançar <ArrowRight className="ml-1.5 size-4" />
                         </Button>
@@ -1054,7 +1056,7 @@ function PublicSite() {
                           type="button"
                           onClick={() => goToStep(4)}
                           disabled={!date || !time}
-                          className="bg-amber-500 text-neutral-950 hover:bg-amber-600 font-bold transition-all rounded-xl"
+                          className="btn-shimmer bg-amber-500 text-neutral-950 hover:bg-amber-400 font-bold transition-all rounded-xl shadow-lg shadow-amber-500/20"
                         >
                           Avançar <ArrowRight className="ml-1.5 size-4" />
                         </Button>
@@ -1114,7 +1116,7 @@ function PublicSite() {
                           <Button
                             type="submit"
                             disabled={saving || !canProceed(4)}
-                            className="bg-amber-500 hover:bg-amber-600 text-neutral-950 font-bold transition-all px-8 rounded-xl shadow-lg shadow-amber-500/10"
+                            className="btn-shimmer bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-neutral-950 font-extrabold transition-all px-8 rounded-xl shadow-xl shadow-amber-500/25 text-sm"
                           >
                             {saving ? (
                               <span className="flex items-center gap-1.5">

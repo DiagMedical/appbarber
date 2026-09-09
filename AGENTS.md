@@ -486,6 +486,20 @@ src/
   - Card da "Agenda Semanal" atualizado para `overflow-x-auto scrollbar-thin` com `min-w-[700px]`, permitindo que a tabela role suavemente dentro do seu próprio card sem quebrar a largura da página, acompanhado de aviso amigável *"↔ Arraste para os lados para ver a semana"* em telas mobile.
 - **Validação**: Build de produção aprovado com sucesso via `tsc -b && vite build`.
 
+### Sessão 40 — Motion Design & Transições Premium "Efeito UAU" (2026-09-09)
+- **`src/index.css`**:
+  - `@keyframes shimmer` + classe `.btn-shimmer`: feixe de luz dourada/âmbar varrendo os botões principais de conversão em loop contínuo suave.
+  - `@keyframes slide-in-right` e `@keyframes slide-in-left` com scale sutil (`0.985 -> 1.0`) e deslocamento ampliado para 36px com curva `cubic-bezier(0.16, 1, 0.3, 1)`.
+  - `@keyframes page-enter`: transição suave com fade + leve subida para as páginas internas.
+  - `@keyframes card-cascade` + `.animate-card-cascade`: cascata escalonada em listas de cards (serviços e barbeiros).
+- **`src/components/PageTransition.tsx`**: Aplicado `.animate-page-enter` com preservação total de responsividade (`w-full min-w-0 max-w-full`).
+- **`src/pages/PublicSite.tsx`**:
+  - Transições direcionais dinâmicas e fluidas entre as 4 etapas do wizard de agendamento (desliza da direita ao avançar, da esquerda ao voltar).
+  - Animação de cascata escalonada na renderização de serviços e barbeiros.
+  - Barra de progresso conectora entre etapas com preenchimento em gradiente âmbar/ouro.
+  - Efeito `.btn-shimmer` adicionado no Hero CTA ("Agendar meu Horário Agora"), nos botões de avançar de cada etapa e no botão final de confirmação de agendamento.
+- **Validação**: Build de produção validado (`✓ built in 2.11s`).
+
 ---
 
 ## 📋 Estado Atual & Próximos Passos (Resumo para IA)
